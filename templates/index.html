@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Digital Gateway to Asian Literature</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Tailwind gray-50 */
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #3b82f6; /* Tailwind blue-500 */
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+        .page-section {
+            display: none;
+        }
+        .page-section.active {
+            display: block;
+        }
+        .card-hover {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Header & Navigation -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="text-2xl font-bold text-gray-800">
+                    <a href="#" class="flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v11.494m-5.22-6.22l10.44 0M3.75 9.375h16.5M3.75 14.625h16.5M5.25 18.375h13.5M5.25 5.625h13.5" />
+                        </svg>
+                        <span>Digital Gateway to Asian Literature</span>
+                    </a>
+                </div>
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="#home" class="nav-link active" onclick="showPage('home', this)">Home</a>
+                    <a href="#gateway" class="nav-link" onclick="showPage('gateway', this)">Explore the Gateway</a>
+                    <div class="relative group">
+                         <button class="nav-link" onclick="showPage('research', document.querySelector('a[href=\'#research\']'))">Our Research
+                            <svg class="w-4 h-4 inline-block ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                         </button>
+                         <div class="absolute hidden group-hover:block bg-white shadow-lg rounded-md mt-2 py-2 w-48">
+                            <a href="#research-explorers" onclick="showPage('research', document.querySelector('a[href=\'#research\']')); document.getElementById('research-explorers').scrollIntoView();" class="block px-4 py-2 text-gray-700 hover:bg-blue-50">Interactive Explorers</a>
+                            <a href="#research-publications" onclick="showPage('research', document.querySelector('a[href=\'#research\']')); document.getElementById('research-publications').scrollIntoView();" class="block px-4 py-2 text-gray-700 hover:bg-blue-50">Publications</a>
+                            <a href="#research-about" onclick="showPage('research', document.querySelector('a[href=\'#research\']')); document.getElementById('research-about').scrollIntoView();" class="block px-4 py-2 text-gray-700 hover:bg-blue-50">About the Project</a>
+                         </div>
+                    </div>
+                    <a href="#educators" class="nav-link" onclick="showPage('educators', this)">Educator's Hub</a>
+                    <a href="#concepts" class="nav-link" onclick="showPage('concepts', this)">Key Concepts</a>
+                    <a href="#news" class="nav-link" onclick="showPage('news', this)">News & Events</a>
+                </nav>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-800 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 space-y-2">
+            <a href="#home" class="block py-2 text-gray-700" onclick="showPage('home', this); closeMobileMenu();">Home</a>
+            <a href="#gateway" class="block py-2 text-gray-700" onclick="showPage('gateway', this); closeMobileMenu();">Explore the Gateway</a>
+            <a href="#research" class="block py-2 text-gray-700" onclick="showPage('research', this); closeMobileMenu();">Our Research</a>
+            <a href="#educators" class="block py-2 text-gray-700" onclick="showPage('educators', this); closeMobileMenu();">Educator's Hub</a>
+            <a href="#concepts" class="block py-2 text-gray-700" onclick="showPage('concepts', this); closeMobileMenu();">Key Concepts</a>
+            <a href="#news" class="block py-2 text-gray-700" onclick="showPage('news', this); closeMobileMenu();">News & Events</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- Home Section -->
+        <section id="home" class="page-section active">
+            <!-- Hero Section -->
+            <div class="bg-blue-50">
+                <div class="container mx-auto px-6 py-20 text-center">
+                    <h1 class="text-4xl md:text-6xl font-bold text-gray-800 leading-tight">Unlocking the Richness of Asian Literature in English</h1>
+                    <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">An innovative, user-friendly public portal for the corpora and research findings generated by the "Asian Literature in English" project. Explore advanced search and analysis functionalities to conduct your own linguistic and literary investigations.</p>
+                    <div class="mt-8">
+                        <div class="relative max-w-xl mx-auto">
+                            <input type="text" id="homepage-search-input" placeholder="Search the corpus for a word or phrase..." class="w-full py-3 px-5 text-lg border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" onkeypress="if(event.key==='Enter') homepageSearch()">
+                            <button onclick="homepageSearch()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-500 text-white py-2 px-6 rounded-full font-semibold hover:bg-blue-600 transition duration-300">Search</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Featured Research -->
+            <div class="container mx-auto px-6 py-16">
+                <h2 class="text-3xl font-bold text-center mb-12">Explore Our Core Research Areas</h2>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- Linguistic Innovations -->
+                    <div class="bg-white p-8 rounded-lg shadow-lg card-hover">
+                        <h3 class="text-2xl font-bold mb-4">Linguistic Innovations</h3>
+                        <p class="text-gray-600 mb-4">Discover how bilingual authors creatively adapt English, introducing novel lexical, semantic, and phrasal forms. See examples like direct borrowings ('shuanggui'), transliterations ('Dragon Well tea'), and creative proverbs.</p>
+                        <a href="#research" onclick="showPage('research', document.querySelector('a[href=\'#research\']'));" class="font-semibold text-blue-500 hover:text-blue-600">Learn More &rarr;</a>
+                    </div>
+                    <!-- Cultural Metaphors -->
+                    <div class="bg-white p-8 rounded-lg shadow-lg card-hover">
+                        <h3 class="text-2xl font-bold mb-4">Cultural Metaphors</h3>
+                        <p class="text-gray-600 mb-4">Explore how culturally-specific metaphors serve as powerful rhetorical and cognitive devices. Uncover the meaning behind expressions like "Falling leaves return to their roots" and "Fish swimming in a cauldron".</p>
+                        <a href="#research" onclick="showPage('research', document.querySelector('a[href=\'#research\']'));" class="font-semibold text-blue-500 hover:text-blue-600">Learn More &rarr;</a>
+                    </div>
+                    <!-- Translanguaging Strategies -->
+                    <div class="bg-white p-8 rounded-lg shadow-lg card-hover">
+                        <h3 class="text-2xl font-bold mb-4">Translanguaging Strategies</h3>
+                        <p class="text-gray-600 mb-4">Investigate the deliberate strategies authors use to weave cultural elements into their narratives, categorized into themes of 'Place', 'Classic Literature', 'History', 'Specialty', and 'Social Politics'.</p>
+                        <a href="#research" onclick="showPage('research', document.querySelector('a[href=\'#research\']'));" class="font-semibold text-blue-500 hover:text-blue-600">Learn More &rarr;</a>
+                    </div>
+                </div>
+            </div>
+            
+             <!-- About the Project -->
+            <div class="bg-white">
+                <div class="container mx-auto px-6 py-16">
+                     <div class="text-center">
+                        <h2 class="text-3xl font-bold">About the Project</h2>
+                        <p class="mt-4 text-lg text-gray-600 max-w-4xl mx-auto">"Asian literature in English: Creativity, translanguaging, and language education" is a comprehensive research initiative aimed at developing a diverse corpus of literary works by bilingual Asian writers, tracing linguistic innovations, and generating educational resources to highlight the unique contributions of Asian writers to world literature.</p>
+                        <a href="#research-about" onclick="showPage('research', document.querySelector('a[href=\'#research\']')); document.getElementById('research-about').scrollIntoView();" class="mt-6 inline-block bg-blue-500 text-white py-3 px-8 rounded-full font-semibold hover:bg-blue-600 transition duration-300">Meet the Team & See Our Aims</a>
+                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Explore the Gateway Section -->
+        <section id="gateway" class="page-section">
+            <div class="container mx-auto px-6 py-16">
+                <h1 class="text-4xl font-bold text-center mb-4">Corpus Analysis Suite</h1>
+                <p class="text-lg text-gray-600 text-center max-w-3xl mx-auto mb-12">An interactive tool inspired by professional software like AntConc and Sketch Engine. Analyze texts from our curated corpora, or paste your own, to uncover linguistic patterns and cultural insights.</p>
+
+                <div class="bg-white p-8 rounded-lg shadow-xl">
+                    <!-- Corpus Input & Controls -->
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold mb-4">1. Select Your Corpus</h2>
+                        <div class="flex flex-col md:flex-row gap-4 mb-4">
+                            <select id="corpus-select" class="flex-grow p-3 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="custom">Paste Custom Text</option>
+                                <option value="upload">Upload Text File (.txt)</option>
+                                <!-- Corpus options will be loaded dynamically -->
+                            </select>
+                            <button class="bg-blue-600 text-white py-3 px-8 rounded-md font-semibold hover:bg-blue-700 transition" onclick="runFullAnalysis()">Analyze Text</button>
+                        </div>
+                        
+                        <!-- File Upload Section (hidden by default) -->
+                        <div id="upload-section" class="mb-4" style="display: none;">
+                            <label for="file-upload" class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer bg-blue-50 hover:bg-blue-100 transition">
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <svg class="w-10 h-10 mb-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                    </svg>
+                                    <p class="mb-2 text-sm text-gray-700"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                                    <p class="text-xs text-gray-500">Text files only (.txt, max 10MB)</p>
+                                </div>
+                                <input id="file-upload" type="file" accept=".txt" class="hidden" onchange="handleFileUpload(event)" />
+                            </label>
+                            <div id="upload-status" class="mt-2 text-sm"></div>
+                        </div>
+                        
+                        <!-- Text Input Section -->
+                        <textarea id="corpus-input" class="w-full h-48 p-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Or paste your text here..."></textarea>
+                    </div>
+
+                    <!-- Analysis Results -->
+                    <div>
+                        <h2 class="text-2xl font-bold mb-4">2. Explore Analysis</h2>
+                        <div class="grid lg:grid-cols-3 gap-8">
+                            <!-- Main Analysis Tabs -->
+                            <div class="lg:col-span-2">
+                                <!-- Tabs -->
+                                <div class="border-b border-gray-200">
+                                    <nav class="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
+                                        <button onclick="openAnalysisTab(event, 'concordance')" class="analysis-tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base border-blue-500 text-blue-600">Concordance</button>
+                                        <button onclick="openAnalysisTab(event, 'keywords')" class="analysis-tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Keywords</button>
+                                        <button onclick="openAnalysisTab(event, 'collocates')" class="analysis-tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Collocates</button>
+                                        <button onclick="openAnalysisTab(event, 'wordlist')" class="analysis-tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Word List</button>
+                                        <button onclick="openAnalysisTab(event, 'ngrams')" class="analysis-tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">N-Grams</button>
+                                    </nav>
+                                </div>
+
+                                <!-- Tab Content -->
+                                <div id="analysis-results-container" class="mt-6 w-full h-[450px] p-4 border rounded-md bg-gray-50 overflow-auto">
+                                    <div id="concordance" class="analysis-tab-content">
+                                        <p class="text-gray-500">Enter a search term in the box above the results to view concordance lines.</p>
+                                    </div>
+                                    <div id="keywords" class="analysis-tab-content" style="display:none;">
+                                         <p class="text-gray-500">Keywords are words that appear significantly more often in your selected text compared to our reference corpus of contemporary North American novels. Results will show here after analysis.</p>
+                                    </div>
+                                    <div id="collocates" class="analysis-tab-content" style="display:none;">
+                                         <p class="text-gray-500">Enter a search term in the box above the results to find its collocates (words that frequently appear nearby).</p>
+                                    </div>
+                                    <div id="wordlist" class="analysis-tab-content" style="display:none;">
+                                         <p class="text-gray-500">A full list of all words in the text, sorted by frequency, will appear here after analysis.</p>
+                                    </div>
+                                    <div id="ngrams" class="analysis-tab-content" style="display:none;">
+                                        <div class="mb-4 flex items-center gap-3">
+                                            <label for="ngram-size" class="font-semibold">N-gram size:</label>
+                                            <select id="ngram-size" class="p-2 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                <option value="2">2-grams (bigrams)</option>
+                                                <option value="3" selected>3-grams (trigrams)</option>
+                                                <option value="4">4-grams</option>
+                                                <option value="5">5-grams</option>
+                                                <option value="6">6-grams</option>
+                                                <option value="7">7-grams</option>
+                                                <option value="8">8-grams</option>
+                                                <option value="9">9-grams</option>
+                                                <option value="10">10-grams</option>
+                                            </select>
+                                            <button onclick="updateNgrams()" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">
+                                                Generate
+                                            </button>
+                                        </div>
+                                        <div id="ngrams-results">
+                                            <p class="text-gray-500">Frequent multi-word clusters (N-Grams) will be displayed here after analysis.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Our Distinction: Cultural Insights -->
+                            <div class="lg:col-span-1">
+                                <div id="cultural-insights-card" class="bg-blue-50 border-2 border-dashed border-blue-200 p-6 rounded-lg h-full">
+                                    <h3 class="text-xl font-bold text-blue-800 mb-3 flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7.014A8.003 8.003 0 0117.657 18.657z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1014.12 11.88l-4.242 4.242z" /></svg>
+                                        Cultural Insights
+                                    </h3>
+                                    <div id="cultural-insights-content">
+                                        <p class="text-gray-600">Our system will automatically highlight significant cultural metaphors, linguistic innovations, and translanguaging strategies from your text here.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Our Research Section -->
+        <section id="research" class="page-section">
+            <div class="container mx-auto px-6 py-16">
+                <h1 class="text-4xl font-bold text-center mb-12">Our Research</h1>
+
+                <!-- Interactive Explorers -->
+                <div id="research-explorers" class="mb-16">
+                    <h2 class="text-3xl font-bold text-center mb-8">Interactive Research Explorers</h2>
+                    <p class="text-lg text-gray-600 text-center max-w-3xl mx-auto mb-10">Engage directly with our findings through these interactive modules. Each explorer provides a hands-on way to understand the key concepts of our research.</p>
+                    
+                    <div class="bg-white p-8 rounded-lg shadow-xl">
+                        <!-- Tabs -->
+                        <div class="border-b border-gray-200 mb-6">
+                            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                                <button onclick="openTab(event, 'explorer-metaphor')" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg border-blue-500 text-blue-600">Cultural Metaphors</button>
+                                <button onclick="openTab(event, 'explorer-innovation')" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Linguistic Innovations</button>
+                                <button onclick="openTab(event, 'explorer-translang')" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Translanguaging Strategies</button>
+                            </nav>
+                        </div>
+
+                        <!-- Tab Content -->
+                        <div id="explorer-metaphor" class="tab-content">
+                            <h3 class="text-2xl font-semibold mb-4">Cultural Metaphor Explorer</h3>
+                            <p class="mb-6 text-gray-600">Based on our analysis of Adeline Yen Mah’s "Falling Leaves Return to their Roots", this tool showcases culturally-specific metaphors. Explore the list below to see how these expressions bridge cultural divides.</p>
+                            <ul class="list-disc list-inside space-y-2">
+                                <li><strong>Falling leaves return to their roots:</strong> Confucian emphasis on ancestral reverence and cyclical familial duties.</li>
+                                <li><strong>Marriage is a gamble:</strong> Highlights the uncertainty and compromise inherent in arranged marriages.</li>
+                                <li><strong>Fish swimming in a cauldron:</strong> Symbolizes stifled individuality in rigid familial/social structures.</li>
+                                <li><strong>Hearts reduced to ashes:</strong> Alludes to Daoist philosophy, where ashes symbolize detachment and emotional numbness.</li>
+                                <li><strong>A chicken talking to a duck:</strong> Reflects challenges in mutual understanding due to linguistic or cultural differences.</li>
+                            </ul>
+                        </div>
+
+                        <div id="explorer-innovation" class="tab-content" style="display:none;">
+                            <h3 class="text-2xl font-semibold mb-4">Linguistic Innovation Explorer</h3>
+                            <p class="mb-6 text-gray-600">Drawn from our study of Qiu Xiaolong's "Enigma of China", this explorer categorizes the unique ways bilingual authors innovate in English. Filter by type to see examples.</p>
+                            <ul class="list-disc list-inside space-y-2">
+                                <li><strong>Lexical (Direct Borrowing):</strong> <em>shuanggui</em> - a specific, untranslatable term for an extra-judicial detention process.</li>
+                                <li><strong>Lexical (Transliteration):</strong> <em>Dragon Well tea</em> - a word-for-word translation of 龙井茶 (Lóngjǐng chá).</li>
+                                <li><strong>Semantic:</strong> <em>connections</em> - used to mean the complex Chinese concept of 关系 (guānxi).</li>
+                                <li><strong>Semantic:</strong> <em>red envelopes</em> - refers to 红包 (hóngbāo), but used in the context of bribery.</li>
+                                <li><strong>Phrasal:</strong> <em>like bamboo shoots after a spring rain</em> - a translated idiom for rapid growth.</li>
+                            </ul>
+                        </div>
+
+                        <div id="explorer-translang" class="tab-content" style="display:none;">
+                            <h3 class="text-2xl font-semibold mb-4">Translanguaging Strategy Explorer</h3>
+                            <p class="mb-6 text-gray-600">This module breaks down the five key strategies bilingual authors employ to infuse their cultural heritage into English narratives. Click on a strategy to learn more.</p>
+                            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                               <div class="p-4 border rounded-md bg-gray-50"><strong>Place-focused:</strong> Emphasizes local context and culture, like the "Shanghai Dream".</div>
+                               <div class="p-4 border rounded-md bg-gray-50"><strong>Classic Literature-focused:</strong> References ancient literature and stories, such as "The Dream of the Red Chamber".</div>
+                               <div class="p-4 border rounded-md bg-gray-50"><strong>History-focused:</strong> Describes historical elements unique to the culture, like the Song Dynasty or Buddhist scripture.</div>
+                               <div class="p-4 border rounded-md bg-gray-50"><strong>Specialty-focused:</strong> Uses cultural elements like food, drink, and customs (e.g., Crab, Bamboo).</div>
+                               <div class="p-4 border rounded-md bg-gray-50"><strong>Social Politics-focused:</strong> Incorporates terms related to social and political phenomena, like "human-flesh search".</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Publications -->
+                <div id="research-publications" class="mb-16">
+                    <h2 class="text-3xl font-bold text-center mb-8">Publications</h2>
+                     <div class="bg-white p-8 rounded-lg shadow-xl space-y-4">
+                        <p><strong>Ma, Q., Su, X., Erni, J. N., & Xu, Z. (2025).</strong> Exploring transcultural translanguaging strategies in English literature of a bilingual Chinese author: a corpus-based study. <em>Asian Englishes</em>, 1-21.</p>
+                        <p><strong>Ma, Q., & Su, X. (2025).</strong> Cultural Metaphors in English Literature by Bilingual Chinese Author: A Corpus-based Study. [Manuscript under review].</p>
+                        <p><strong>Ma, Q., & Su, X. (2025).</strong> Linguistic Innovations in Transcultural Literature by a Chinese Author: A Corpus Linguistics Perspective. [Book chapter, under review].</p>
+                    </div>
+                </div>
+
+                <!-- About the Project & Team -->
+                <div id="research-about">
+                    <h2 class="text-3xl font-bold text-center mb-8">About the Project & Team</h2>
+                     <div class="bg-white p-8 rounded-lg shadow-xl">
+                        <h3 class="text-2xl font-semibold mb-4">Initiative Aims</h3>
+                        <ul class="list-disc list-inside space-y-3 text-gray-700">
+                             <li>Develop a diverse range of corpora of literary works in English from bilingual Asian writers.</li>
+                             <li>Design an innovative and user-friendly website with sophisticated search and analysis functionalities.</li>
+                             <li>Trace linguistic innovations and cultural meanings in Asian works in English through interdisciplinary perspectives.</li>
+                             <li>Engage with experts to co-construct and emphasize the contributions of Asian writers to world literature.</li>
+                             <li>Generate educational resources from Asian literary works in English to inform language education globally.</li>
+                        </ul>
+
+                        <h3 class="text-2xl font-semibold mt-8 mb-4">Our Team</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-bold">Principal Project Supervisor</h4>
+                                <p>Dr Ma Qing, Angel (Professor, FHM/LML), Dr Tse Yin Nga Kelly (Assistant Professor, FHM/LCS), Prof John Erni (Chair Professor of Cultural Studies, LCS; Dean, FHM)</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold">Research Staff</h4>
+                                <p>SU Xiaoqi (Research Assistant)</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold">Co-supervisors</h4>
+                                <p>Dr Lee Ju Seong, Dr Banerjee Bidisha, Dr Wang Lixun, Dr Zou Di Daisy, Dr Chang Tsung-chi Hawk, Dr Liu Yiqi April, Dr Mak Wing Wah Pauline, Dr Chen Hsueh Chu</p>
+                            </div>
+                        </div>
+                         
+                        <h3 class="text-2xl font-semibold mt-8 mb-4">Future Direction: AI Integration</h3>
+                        <p class="text-gray-700">As outlined in our research proposals, we are actively developing a Human-AI collaborative approach to enhance the detection and analysis of cultural metaphors. Future versions of this website will integrate a custom AI chatbot, trained on our corpora and research, to provide users with real-time, intelligent analytical assistance.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Educator's Hub Section -->
+        <section id="educators" class="page-section">
+            <div class="container mx-auto px-6 py-16">
+                <h1 class="text-4xl font-bold text-center mb-4">Educator's Hub</h1>
+                <p class="text-lg text-gray-600 text-center max-w-3xl mx-auto mb-12">Downloadable resources designed to bring Asian literature in English into the classroom. All materials are derived from our research and are suitable for various educational levels.</p>
+                
+                <div class="bg-white p-8 rounded-lg shadow-xl">
+                    <h2 class="text-2xl font-bold mb-6">Resource Library</h2>
+
+                    <div class="space-y-6">
+                        <!-- Resource Item -->
+                        <div class="flex items-center justify-between p-4 border rounded-md">
+                            <div>
+                                <h3 class="font-bold text-lg">Lesson Plan: Understanding Cultural Metaphors</h3>
+                                <p class="text-gray-600 text-sm">A 90-minute lesson for secondary students using excerpts from "Falling Leaves".</p>
+                            </div>
+                            <a href="{{ url_for('static', filename='resources/Lesson-Plan-Cultural-Metaphors.pdf') }}" download class="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                <span>Download</span>
+                            </a>
+                        </div>
+                         <!-- Resource Item -->
+                        <div class="flex items-center justify-between p-4 border rounded-md">
+                            <div>
+                                <h3 class="font-bold text-lg">Activity: Identifying Linguistic Innovations</h3>
+                                <p class="text-gray-600 text-sm">A worksheet for tertiary students to identify and categorize innovations in texts by Qiu Xiaolong.</p>
+                            </div>
+                             <a href="{{ url_for('static', filename='resources/Activity-Linguistic-Innovations.pdf') }}" download class="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                <span>Download</span>
+                            </a>
+                        </div>
+                         <!-- Resource Item -->
+                        <div class="flex items-center justify-between p-4 border rounded-md">
+                            <div>
+                                <h3 class="font-bold text-lg">Guide: "Text-in-Action" - Translanguaging</h3>
+                                <p class="text-gray-600 text-sm">A teacher's guide on using our corpus to explain translanguaging strategies to students.</p>
+                            </div>
+                             <a href="{{ url_for('static', filename='resources/Guide-Translanguaging-Strategies.pdf') }}" download class="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                <span>Download</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Concepts Section -->
+        <section id="concepts" class="page-section">
+            <div class="container mx-auto px-6 py-16">
+                <h1 class="text-4xl font-bold text-center mb-4">Key Concepts Glossary</h1>
+                <p class="text-lg text-gray-600 text-center max-w-3xl mx-auto mb-12">A quick reference for the core theoretical terms used throughout our research.</p>
+
+                <div class="bg-white p-8 rounded-lg shadow-xl space-y-6">
+                    <div>
+                        <h2 class="text-xl font-bold">Corpus Linguistics</h2>
+                        <p class="text-gray-700">The study of language as expressed in corpora (samples) of "real world" text. This approach uses computational tools to systematically analyze large amounts of linguistic data for patterns and frequencies.</p>
+                    </div>
+                     <hr>
+                    <div>
+                        <h2 class="text-xl font-bold">Cultural Metaphor</h2>
+                        <p class="text-gray-700">A rhetorical and cognitive device that conveys complex cultural themes, representing a culture’s shared beliefs and practices. It highlights the interaction between language, thought, and cultural context.</p>
+                    </div>
+                     <hr>
+                    <div>
+                        <h2 class="text-xl font-bold">Translanguaging</h2>
+                        <p class="text-gray-700">A communicative practice where bilinguals and multilinguals fluidly utilize their full linguistic repertoire across languages and modes of expression to communicate and create meaning. It views languages not as separate systems, but as an integrated resource.</p>
+                    </div>
+                     <hr>
+                    <div>
+                        <h2 class="text-xl font-bold">MIPVU</h2>
+                        <p class="text-gray-700">(Metaphor Identification Procedure VU University Amsterdam) A detailed, step-by-step method for identifying metaphor-related words in discourse. It provides clear guidelines and criteria to ensure reliable and consistent metaphor analysis.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- News & Events Section -->
+        <section id="news" class="page-section">
+            <div class="container mx-auto px-6 py-16">
+                <h1 class="text-4xl font-bold text-center mb-12">News & Events</h1>
+                <div class="max-w-4xl mx-auto space-y-8">
+                    <!-- News Item -->
+                    <div class="bg-white p-6 rounded-lg shadow-md flex items-start space-x-6">
+                         <div class="w-24 text-center">
+                            <div class="text-lg font-bold text-blue-600">JUL</div>
+                            <div class="text-4xl font-bold text-gray-800">2025</div>
+                         </div>
+                         <div class="flex-1">
+                            <h2 class="text-xl font-bold mb-2">Conference Presentation: The 9th HAAL Conference 2025</h2>
+                            <p class="text-gray-600">Our team will present the paper "A Corpus-Based Approach for Investigating Cultural Metaphors in Bilingual English Literature and its implications for English Language Education" at the Hong Kong Association for Applied Linguistics (HAAL) conference.</p>
+                         </div>
+                    </div>
+                    <!-- News Item -->
+                     <div class="bg-white p-6 rounded-lg shadow-md flex items-start space-x-6">
+                         <div class="w-24 text-center">
+                            <div class="text-lg font-bold text-blue-600">MAY</div>
+                            <div class="text-4xl font-bold text-gray-800">2025</div>
+                         </div>
+                         <div class="flex-1">
+                            <h2 class="text-xl font-bold mb-2">Paper Submission: Cultural Metaphors</h2>
+                            <p class="text-gray-600">Our manuscript, "Cultural Metaphors in English Literature by Bilingual Chinese Author: A Corpus-based Study," has been finalized and submitted for peer review. We look forward to sharing the published work soon.</p>
+                         </div>
+                    </div>
+                     <!-- News Item -->
+                     <div class="bg-white p-6 rounded-lg shadow-md flex items-start space-x-6">
+                         <div class="w-24 text-center">
+                            <div class="text-lg font-bold text-blue-600">JAN</div>
+                            <div class="text-4xl font-bold text-gray-800">2025</div>
+                         </div>
+                         <div class="flex-1">
+                            <h2 class="text-xl font-bold mb-2">Paper Accepted in 'Asian Englishes'</h2>
+                            <p class="text-gray-600">We are thrilled to announce that our paper, "Exploring transcultural translanguaging strategies in English literature of a bilingual Chinese author: a corpus-based study," has been accepted for publication. Thank you to the reviewers and editors for their valuable feedback.</p>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white">
+        <div class="container mx-auto px-6 py-12">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">The Digital Gateway to Asian Literature</h3>
+                    <p class="text-gray-400">A research project from The Education University of Hong Kong, dedicated to exploring creativity, translanguaging, and language education in Asian literature written in English.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#about" onclick="showPage('research', document.querySelector('a[href=\'#research\']')); document.getElementById('research-about').scrollIntoView();" class="text-gray-400 hover:text-white">About the Project</a></li>
+                        <li><a href="#gateway" onclick="showPage('gateway', document.querySelector('a[href=\'#gateway\']'))" class="text-gray-400 hover:text-white">Corpus Tools</a></li>
+                        <li><a href="#educators" onclick="showPage('educators', document.querySelector('a[href=\'#educators\']'))" class="text-gray-400 hover:text-white">For Educators</a></li>
+                        <li><a href="#publications" onclick="showPage('research', document.querySelector('a[href=\'#research\']')); document.getElementById('research-publications').scrollIntoView();" class="text-gray-400 hover:text-white">Publications</a></li>
+                    </ul>
+                </div>
+                <div>
+                     <h3 class="text-lg font-semibold mb-4">Contact Us</h3>
+                     <p class="text-gray-400">Department of Linguistics and Modern Language Studies<br>The Education University of Hong Kong</p>
+                     <p class="text-gray-400 mt-2">Email: <a href="mailto:maqing@eduhk.hk" class="hover:text-white">maqing@eduhk.hk</a></p>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-500">
+                <p>&copy; 2025 The Digital Gateway to Asian Literature. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- Navigation Logic ---
+        const pages = document.querySelectorAll('.page-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        // --- Global variable to store current corpus data ---
+        let currentCorpusData = {
+            corpus_id: 'custom',
+            text: ''
+        };
+        
+        // --- Global variable to store available corpora ---
+        let availableCorpora = [];
+        
+        // --- Load available corpora on page load ---
+        async function loadAvailableCorpora() {
+            try {
+                const response = await fetch('/api/corpora');
+                const data = await response.json();
+                
+                if (data.success) {
+                    availableCorpora = data.corpora;
+                    populateCorpusDropdown();
+                }
+            } catch (error) {
+                console.error('Error loading corpora:', error);
+            }
+        }
+        
+        // --- Populate corpus dropdown with loaded corpora ---
+        function populateCorpusDropdown() {
+            const select = document.getElementById('corpus-select');
+            
+            // Clear existing options except "Paste Custom Text" and "Upload Text File"
+            // Keep first two options (custom and upload)
+            while (select.options.length > 2) {
+                select.remove(2);
+            }
+            
+            // Add corpus options
+            availableCorpora.forEach(corpus => {
+                const option = document.createElement('option');
+                option.value = corpus.id;
+                option.textContent = corpus.title;
+                select.appendChild(option);
+            });
+        }
+        
+        // Load corpora when page loads
+        window.addEventListener('DOMContentLoaded', loadAvailableCorpora);
+
+        function showPage(pageId, clickedLink) {
+            pages.forEach(page => {
+                page.style.display = 'none';
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).style.display = 'block';
+            document.getElementById(pageId).classList.add('active');
+
+            navLinks.forEach(link => link.classList.remove('active'));
+            if (clickedLink) {
+                 clickedLink.classList.add('active');
+            }
+             window.scrollTo(0, 0);
+        }
+
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        function closeMobileMenu() {
+            mobileMenu.classList.add('hidden');
+        }
+
+        // --- Homepage Search Function ---
+        async function homepageSearch() {
+            const searchTerm = document.getElementById('homepage-search-input').value.trim();
+            
+            if (!searchTerm) {
+                alert('Please enter a search term');
+                return;
+            }
+            
+            // Check if corpora are loaded
+            if (availableCorpora.length === 0) {
+                alert('No corpora available. Please add corpus files to the corpora directory.');
+                return;
+            }
+            
+            // Navigate to gateway page
+            showPage('gateway', document.querySelector('a[href=\'#gateway\']'));
+            
+            // Select the first available corpus
+            const firstCorpusId = availableCorpora[0].id;
+            const corpusSelect = document.getElementById('corpus-select');
+            corpusSelect.value = firstCorpusId;
+            
+            // Manually update UI elements (hide upload section, show text area with message)
+            const inputBox = document.getElementById('corpus-input');
+            const uploadSection = document.getElementById('upload-section');
+            inputBox.style.display = 'block';
+            uploadSection.style.display = 'none';
+            inputBox.value = '[Pre-loaded corpus selected. Analyzing...]';
+            inputBox.readOnly = true;
+            
+            // Store the search term for later use
+            const pendingSearchTerm = searchTerm;
+            
+            // Trigger analysis
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        corpus_id: firstCorpusId,
+                        text: ''
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Store current corpus data
+                    currentCorpusData.corpus_id = firstCorpusId;
+                    currentCorpusData.text = '';
+                    
+                    // Display results
+                    displayWordList(data.wordlist);
+                    displayKeywords(data.keywords);
+                    displayNgrams(data.ngrams, 3);
+                    displayCulturalInsights(data.cultural_insights);
+                    
+                    // Update corpus input display
+                    inputBox.value = '[Pre-loaded corpus selected. Analysis results are already finished and shown below.]';
+                    
+                    // Now automatically search for concordance and collocates
+                    await searchConcordanceWithTerm(pendingSearchTerm);
+                    await searchCollocatesWithTerm(pendingSearchTerm);
+                    
+                    // Switch to concordance tab to show results
+                    const concordanceTab = document.querySelector('button[onclick*="concordance"]');
+                    if (concordanceTab) {
+                        concordanceTab.click();
+                    }
+                } else {
+                    alert('Analysis failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred during analysis. Please try again.');
+            }
+        }
+
+        // Helper function to search concordance with a specific term
+        async function searchConcordanceWithTerm(searchTerm) {
+            try {
+                const response = await fetch('/api/concordance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        corpus_id: currentCorpusData.corpus_id,
+                        text: currentCorpusData.text,
+                        search_term: searchTerm
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayConcordance(data.results, searchTerm);
+                }
+            } catch (error) {
+                console.error('Error searching concordance:', error);
+            }
+        }
+        
+        // Helper function to search collocates with a specific term
+        async function searchCollocatesWithTerm(searchTerm) {
+            try {
+                const response = await fetch('/api/collocates', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        corpus_id: currentCorpusData.corpus_id,
+                        text: currentCorpusData.text,
+                        search_term: searchTerm
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayCollocatesResults(data.collocates, searchTerm);
+                }
+            } catch (error) {
+                console.error('Error searching collocates:', error);
+            }
+        }
+
+        // --- Corpus Analysis Logic ---
+        document.getElementById('corpus-select').addEventListener('change', function() {
+            const inputBox = document.getElementById('corpus-input');
+            const uploadSection = document.getElementById('upload-section');
+            currentCorpusData.corpus_id = this.value;
+            
+            if (this.value === 'custom') {
+                // Show text input, hide upload
+                inputBox.style.display = 'block';
+                uploadSection.style.display = 'none';
+                inputBox.value = '';
+                inputBox.readOnly = false;
+                inputBox.placeholder = 'Paste your text here...';
+                currentCorpusData.text = '';
+            } else if (this.value === 'upload') {
+                // Show upload section, hide text input
+                inputBox.style.display = 'none';
+                uploadSection.style.display = 'block';
+                currentCorpusData.text = '';
+                document.getElementById('upload-status').innerHTML = '';
+            } else {
+                // Pre-loaded corpus selected
+                inputBox.style.display = 'block';
+                uploadSection.style.display = 'none';
+                inputBox.value = '[Pre-loaded corpus selected. Click "Analyze Text" to view analysis.]';
+                inputBox.readOnly = true;
+            }
+        });
+        
+        // Update custom text when user types
+        document.getElementById('corpus-input').addEventListener('input', function() {
+            if (currentCorpusData.corpus_id === 'custom') {
+                currentCorpusData.text = this.value;
+            }
+        });
+        
+        // Handle file upload
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Check file size (max 10MB)
+            const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+            if (file.size > maxSize) {
+                alert('File is too large. Maximum size is 10MB.');
+                event.target.value = ''; // Reset file input
+                return;
+            }
+            
+            // Show uploading status
+            const statusDiv = document.getElementById('upload-status');
+            statusDiv.innerHTML = '<p class="text-blue-600">📤 Uploading and processing file...</p>';
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Store the uploaded content
+                    currentCorpusData.text = data.content;
+                    currentCorpusData.corpus_id = 'custom'; // Treat as custom for analysis
+                    
+                    // Show success message
+                    const wordCount = data.content.split(/\s+/).filter(w => w.length > 0).length;
+                    statusDiv.innerHTML = `<p class="text-green-600">✅ File uploaded: <strong>${data.filename}</strong> (${wordCount.toLocaleString()} words)</p>`;
+                    
+                    // Auto-analyze after upload
+                    setTimeout(() => {
+                        runFullAnalysis();
+                    }, 500);
+                } else {
+                    statusDiv.innerHTML = `<p class="text-red-600">❌ Error: ${data.error}</p>`;
+                    event.target.value = ''; // Reset file input
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                statusDiv.innerHTML = '<p class="text-red-600">❌ Upload failed. Please try again.</p>';
+                event.target.value = ''; // Reset file input
+            }
+        }
+
+        async function runFullAnalysis() {
+            const selectedCorpus = document.getElementById('corpus-select').value;
+            
+            // Get text based on corpus type
+            let text = '';
+            if (selectedCorpus === 'custom') {
+                text = document.getElementById('corpus-input').value;
+                if (text.trim() === "") {
+                    alert('Please paste some text to analyze.');
+                    return;
+                }
+            } else if (selectedCorpus === 'upload') {
+                // For uploaded files, text is stored in currentCorpusData
+                text = currentCorpusData.text;
+                if (!text || text.trim() === "") {
+                    alert('Please upload a text file first.');
+                    return;
+                }
+            }
+
+            // Show loading state
+            document.getElementById('wordlist').innerHTML = '<p class="text-gray-500">Analyzing...</p>';
+            document.getElementById('keywords').innerHTML = '<p class="text-gray-500">Analyzing...</p>';
+            document.getElementById('ngrams-results').innerHTML = '<p class="text-gray-500">Analyzing...</p>';
+            document.getElementById('cultural-insights-content').innerHTML = '<p class="text-gray-600">Detecting cultural insights...</p>';
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        corpus_id: selectedCorpus,
+                        text: text
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Analysis failed');
+                }
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Store current corpus data for concordance/collocates
+                    currentCorpusData.corpus_id = selectedCorpus;
+                    currentCorpusData.text = text;
+                    
+                    // Display results
+                    displayWordList(data.wordlist);
+                    displayKeywords(data.keywords);
+                    displayNgrams(data.ngrams, 3);
+                    displayCulturalInsights(data.cultural_insights);
+                    
+                    // Update concordance and collocates placeholders
+                    document.getElementById('concordance').innerHTML = `<p class="text-gray-500">Analysis complete. Enter a search term in the box below and press Enter to view concordance lines.</p>
+                        <div class="mt-4">
+                            <input type="text" id="concordance-search" placeholder="Search term..." class="w-full p-2 border rounded-md" onkeypress="if(event.key==='Enter') searchConcordance()">
+                            <button onclick="searchConcordance()" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Search</button>
+                        </div>`;
+                    document.getElementById('collocates').innerHTML = `<p class="text-gray-500">Analysis complete. Enter a search term in the box below and press Enter to find its collocates.</p>
+                        <div class="mt-4">
+                            <input type="text" id="collocates-search" placeholder="Search term..." class="w-full p-2 border rounded-md" onkeypress="if(event.key==='Enter') searchCollocates()">
+                            <button onclick="searchCollocates()" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Search</button>
+                        </div>`;
+                } else {
+                    alert('Analysis failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                console.error('Error details:', error.message, error.stack);
+                alert('An error occurred during analysis: ' + error.message);
+                document.getElementById('wordlist').innerHTML = '<p class="text-red-500">Analysis failed.</p>';
+                document.getElementById('keywords').innerHTML = '<p class="text-red-500">Analysis failed.</p>';
+                document.getElementById('ngrams-results').innerHTML = '<p class="text-red-500">Analysis failed.</p>';
+            }
+        }
+
+        function displayWordList(wordlist) {
+             let tableHTML = `<h3 class="font-bold mb-2">Word List</h3>
+                              <table class="w-full text-left text-sm">
+                                <thead class="bg-gray-200"><tr><th class="p-2">#</th><th class="p-2">Word</th><th class="p-2">Freq.</th></tr></thead>
+                                <tbody>`;
+             wordlist.forEach((item, i) => {
+                 tableHTML += `<tr class="border-b"><td class="p-2">${i+1}</td><td class="p-2">${item.word}</td><td class="p-2">${item.freq}</td></tr>`;
+             });
+             tableHTML += `</tbody></table>`;
+             document.getElementById('wordlist').innerHTML = tableHTML;
+        }
+
+        function displayKeywords(keywords) {
+             let tableHTML = `<h3 class="font-bold mb-2">Keywords vs. Reference Corpus</h3>
+                              <p class="text-xs text-gray-500 mb-2">Words with high significance in this text.</p>
+                              <table class="w-full text-left text-sm">
+                                <thead class="bg-gray-200"><tr><th class="p-2">Keyword</th><th class="p-2">Freq.</th><th class="p-2">Keyness</th></tr></thead>
+                                <tbody>`;
+             keywords.forEach(item => {
+                 tableHTML += `<tr class="border-b"><td class="p-2 font-semibold">${item.word}</td><td class="p-2">${item.freq}</td><td class="p-2">${item.keyness}</td></tr>`;
+             });
+             tableHTML += `</tbody></table>`;
+             document.getElementById('keywords').innerHTML = tableHTML;
+        }
+        
+        function displayNgrams(ngrams, n = 3) {
+             const ngramLabel = n === 2 ? 'bigrams' : n === 3 ? 'trigrams' : `${n}-grams`;
+             let tableHTML = `<h3 class="font-bold mb-2">N-Grams (${ngramLabel})</h3>
+                              <table class="w-full text-left text-sm">
+                                <thead class="bg-gray-200"><tr><th class="p-2">Cluster (${n}-word)</th><th class="p-2">Freq.</th></tr></thead>
+                                <tbody>`;
+             ngrams.slice(0, 50).forEach(item => {
+                 tableHTML += `<tr class="border-b"><td class="p-2">${item.ngram}</td><td class="p-2">${item.freq}</td></tr>`;
+             });
+             tableHTML += `</tbody></table>`;
+             document.getElementById('ngrams-results').innerHTML = tableHTML;
+        }
+        
+        // New function to update n-grams based on selected size
+        async function updateNgrams() {
+            const n = parseInt(document.getElementById('ngram-size').value);
+            
+            if (!currentCorpusData.corpus_id) {
+                alert('Please analyze a corpus first');
+                return;
+            }
+            
+            document.getElementById('ngrams-results').innerHTML = '<p class="text-gray-500">Generating n-grams...</p>';
+            
+            try {
+                const response = await fetch('/api/ngrams', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        corpus_id: currentCorpusData.corpus_id,
+                        text: currentCorpusData.text,
+                        n: n
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayNgrams(data.ngrams, data.n);
+                } else {
+                    alert('N-gram generation failed: ' + (data.error || 'Unknown error'));
+                    document.getElementById('ngrams-results').innerHTML = '<p class="text-red-500">Failed to generate n-grams.</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while generating n-grams');
+                document.getElementById('ngrams-results').innerHTML = '<p class="text-red-500">Error generating n-grams.</p>';
+            }
+        }
+
+        function displayCulturalInsights(insights) {
+            const contentDiv = document.getElementById('cultural-insights-content');
+            
+            if (!insights || insights.length === 0) {
+                contentDiv.innerHTML = '<p class="text-gray-600">No specific cultural insights from our research were automatically detected in this text. Explore the analysis tabs to find your own patterns!</p>';
+                return;
+            }
+            
+            let insightsFoundHTML = '';
+            insights.forEach(item => {
+                insightsFoundHTML += `
+                    <div class="mb-4 pb-4 border-b border-blue-200 last:border-b-0">
+                        <p class="text-sm font-semibold text-blue-700">${item.type}</p>
+                        <p class="font-bold text-lg text-gray-800">"${item.term}"</p>
+                        <p class="text-gray-700">${item.insight}</p>
+                        <a href="#research-explorers" onclick="showPage('research', document.querySelector('a[href=\\'#research\\']')); document.getElementById('research-explorers').scrollIntoView();" class="text-blue-600 text-sm font-semibold hover:underline">Learn more &rarr;</a>
+                    </div>
+                `;
+            });
+            contentDiv.innerHTML = insightsFoundHTML;
+        }
+        
+        // New functions for concordance and collocates search
+        async function searchConcordance() {
+            const searchTerm = document.getElementById('concordance-search').value.trim();
+            if (!searchTerm) {
+                alert('Please enter a search term');
+                return;
+            }
+            
+            document.getElementById('concordance').innerHTML = '<p class="text-gray-500">Searching...</p>';
+            
+            try {
+                const response = await fetch('/api/concordance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        corpus_id: currentCorpusData.corpus_id,
+                        text: currentCorpusData.text,
+                        search_term: searchTerm
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayConcordance(data.results, searchTerm);
+                } else {
+                    alert('Search failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred during search');
+            }
+        }
+        
+        function displayConcordance(results, searchTerm) {
+            let html = `<h3 class="font-bold mb-2">Concordance: "${searchTerm}" (${results.length} result${results.length !== 1 ? 's' : ''})</h3>
+                        <div class="mt-4 mb-4">
+                            <input type="text" id="concordance-search" value="${searchTerm}" placeholder="Search term..." class="w-full p-2 border rounded-md" onkeypress="if(event.key==='Enter') searchConcordance()">
+                            <button onclick="searchConcordance()" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Search</button>
+                        </div>`;
+            
+            if (results.length === 0) {
+                html += '<p class="text-gray-500">No matches found.</p>';
+            } else {
+                html += '<div class="space-y-2">';
+                results.forEach((item, i) => {
+                    html += `<div class="text-sm border-b pb-2">
+                                <span class="text-gray-600">${item.left}</span>
+                                <span class="font-bold text-blue-600 mx-1">${item.keyword}</span>
+                                <span class="text-gray-600">${item.right}</span>
+                             </div>`;
+                });
+                html += '</div>';
+            }
+            
+            document.getElementById('concordance').innerHTML = html;
+        }
+        
+        async function searchCollocates() {
+            const searchTerm = document.getElementById('collocates-search').value.trim();
+            if (!searchTerm) {
+                alert('Please enter a search term');
+                return;
+            }
+            
+            document.getElementById('collocates').innerHTML = '<p class="text-gray-500">Searching...</p>';
+            
+            try {
+                const response = await fetch('/api/collocates', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        corpus_id: currentCorpusData.corpus_id,
+                        text: currentCorpusData.text,
+                        search_term: searchTerm
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayCollocatesResults(data.collocates, searchTerm);
+                } else {
+                    alert('Search failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred during search');
+            }
+        }
+        
+        function displayCollocatesResults(collocates, searchTerm) {
+            let html = `<h3 class="font-bold mb-2">Collocates: "${searchTerm}"</h3>
+                        <div class="mt-4 mb-4">
+                            <input type="text" id="collocates-search" value="${searchTerm}" placeholder="Search term..." class="w-full p-2 border rounded-md" onkeypress="if(event.key==='Enter') searchCollocates()">
+                            <button onclick="searchCollocates()" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Search</button>
+                        </div>`;
+            
+            if (collocates.length === 0) {
+                html += '<p class="text-gray-500">No collocates found.</p>';
+            } else {
+                html += `<table class="w-full text-left text-sm">
+                           <thead class="bg-gray-200"><tr><th class="p-2">Word</th><th class="p-2">Frequency</th></tr></thead>
+                           <tbody>`;
+                collocates.forEach(item => {
+                    html += `<tr class="border-b"><td class="p-2">${item.word}</td><td class="p-2">${item.freq}</td></tr>`;
+                });
+                html += `</tbody></table>`;
+            }
+            
+            document.getElementById('collocates').innerHTML = html;
+        }
+
+
+        // --- Interactive Explorer Tabs ---
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        function openTab(event, tabId) {
+            tabContents.forEach(content => content.style.display = 'none');
+            tabButtons.forEach(button => button.className = button.className.replace(' border-blue-500 text-blue-600', ' border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'));
+            
+            document.getElementById(tabId).style.display = 'block';
+            event.currentTarget.className = event.currentTarget.className.replace(' border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300', ' border-blue-500 text-blue-600');
+        }
+        
+        // --- Analysis Suite Tabs ---
+        const analysisTabButtons = document.querySelectorAll('.analysis-tab-button');
+        const analysisTabContents = document.querySelectorAll('.analysis-tab-content');
+
+        function openAnalysisTab(event, tabId) {
+            analysisTabContents.forEach(content => content.style.display = 'none');
+            analysisTabButtons.forEach(button => button.className = button.className.replace(' border-blue-500 text-blue-600', ' border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'));
+            
+            document.getElementById(tabId).style.display = 'block';
+            event.currentTarget.className = event.currentTarget.className.replace(' border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300', ' border-blue-500 text-blue-600');
+        }
+
+    </script>
+</body>
+</html>
