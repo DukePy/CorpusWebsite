@@ -531,6 +531,9 @@
             text: ''
         };
         
+        // --- Global storage for large texts (to avoid sessionStorage quota issues) ---
+        window.corpusTextStorage = window.corpusTextStorage || {};
+        
         // --- Global variable to store available corpora ---
         let availableCorpora = [];
         
@@ -729,6 +732,7 @@
         document.getElementById('corpus-select').addEventListener('change', function() {
             const inputBox = document.getElementById('corpus-input');
             const uploadSection = document.getElementById('upload-section');
+            const previousCorpusId = currentCorpusData.corpus_id;
             currentCorpusData.corpus_id = this.value;
             
             if (this.value === 'custom') {
@@ -743,14 +747,19 @@
                 // Show upload section, hide text input
                 inputBox.style.display = 'none';
                 uploadSection.style.display = 'block';
-                currentCorpusData.text = '';
-                document.getElementById('upload-status').innerHTML = '';
+                // Only clear text if this is a manual selection, not a programmatic one after upload
+                if (previousCorpusId !== 'upload') {
+                    currentCorpusData.text = '';
+                    document.getElementById('upload-status').innerHTML = '';
+                }
             } else {
                 // Pre-loaded corpus selected
                 inputBox.style.display = 'block';
                 uploadSection.style.display = 'none';
                 inputBox.value = '[Pre-loaded corpus selected. Click "Analyze Text" to view analysis.]';
                 inputBox.readOnly = true;
+                // Clear any previously uploaded/custom text
+                currentCorpusData.text = '';
             }
         });
         
@@ -793,7 +802,7 @@
                 if (data.success) {
                     // Store the uploaded content
                     currentCorpusData.text = data.content;
-                    currentCorpusData.corpus_id = 'custom'; // Treat as custom for analysis
+                    currentCorpusData.corpus_id = 'upload'; // Keep as upload for consistency
                     
                     // Show success message
                     const wordCount = data.content.split(/\s+/).filter(w => w.length > 0).length;
@@ -1029,27 +1038,112 @@
         }
         
         function displayConcordance(results, searchTerm) {
-            let html = `<h3 class="font-bold mb-2">Concordance: "${searchTerm}" (${results.length} result${results.length !== 1 ? 's' : ''})</h3>
+            let html = `<h3 class="font-bold mb-2">Concordance: "${escapeHtml(searchTerm)}" (${results.length} result${results.length !== 1 ? 's' : ''})</h3>
                         <div class="mt-4 mb-4">
-                            <input type="text" id="concordance-search" value="${searchTerm}" placeholder="Search term..." class="w-full p-2 border rounded-md" onkeypress="if(event.key==='Enter') searchConcordance()">
+                            <input type="text" id="concordance-search" value="${escapeHtml(searchTerm)}" placeholder="Search term..." class="w-full p-2 border rounded-md" onkeypress="if(event.key==='Enter') searchConcordance()">
                             <button onclick="searchConcordance()" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Search</button>
                         </div>`;
             
             if (results.length === 0) {
                 html += '<p class="text-gray-500">No matches found.</p>';
             } else {
+                html += '<p class="text-xs text-gray-500 mb-2 italic">Click on any occurrence to view it in full context</p>';
                 html += '<div class="space-y-2">';
                 results.forEach((item, i) => {
-                    html += `<div class="text-sm border-b pb-2">
-                                <span class="text-gray-600">${item.left}</span>
-                                <span class="font-bold text-blue-600 mx-1">${item.keyword}</span>
-                                <span class="text-gray-600">${item.right}</span>
+                    html += `<div class="text-sm border-b pb-2 hover:bg-blue-50 transition cursor-pointer rounded px-2 py-1" onclick="openContextByPosition(${item.position})">
+                                <span class="text-gray-600">${escapeHtml(item.left)}</span>
+                                <span class="font-bold text-blue-600 mx-1">${escapeHtml(item.keyword)}</span>
+                                <span class="text-gray-600">${escapeHtml(item.right)}</span>
+                                <span class="text-xs text-blue-500 ml-2">→ View in context</span>
                              </div>`;
                 });
                 html += '</div>';
             }
             
             document.getElementById('concordance').innerHTML = html;
+        }
+        
+        function openContextByPosition(position) {
+            console.log('openContextByPosition called with position:', position);
+            console.log('currentCorpusData:', currentCorpusData);
+            
+            try {
+                // Clean up old sessionStorage entries first
+                cleanupSessionStorage();
+                
+                // Generate a unique key for this context view
+                const contextKey = `corpus_context_latest`;
+                
+                // For custom/uploaded text, store in global variable to avoid sessionStorage quota
+                let textStorageKey = null;
+                if ((currentCorpusData.corpus_id === 'custom' || currentCorpusData.corpus_id === 'upload') && currentCorpusData.text) {
+                    textStorageKey = `text_latest`;
+                    window.corpusTextStorage[textStorageKey] = currentCorpusData.text;
+                }
+                
+                // Store only metadata in sessionStorage (not the full text)
+                const contextData = {
+                    corpus_id: currentCorpusData.corpus_id,
+                    position: position,
+                    textStorageKey: textStorageKey,
+                    timestamp: Date.now()
+                };
+                
+                console.log('Storing context data:', contextData);
+                try {
+                    sessionStorage.setItem(contextKey, JSON.stringify(contextData));
+                } catch (storageError) {
+                    console.error('SessionStorage error:', storageError);
+                    // Clear everything and try again
+                    sessionStorage.clear();
+                    sessionStorage.setItem(contextKey, JSON.stringify(contextData));
+                }
+                
+                // Build URL with just the key
+                const url = `/context?key=${contextKey}`;
+                console.log('Opening URL:', url);
+                
+                // Open context in new window/tab
+                const newWindow = window.open(url, '_blank', 'width=1000,height=800,scrollbars=yes,resizable=yes');
+                
+                console.log('Window opened:', newWindow);
+                
+                // Check if popup was blocked
+                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                    console.warn('Popup appears to be blocked');
+                    // Popup blocked - try opening in same tab
+                    if (confirm('Popup was blocked by your browser. Open context in a new tab instead?')) {
+                        window.open(url, '_blank');
+                    }
+                }
+            } catch (error) {
+                console.error('Error opening context:', error);
+                alert('Failed to open context view: ' + error.message);
+            }
+        }
+        
+        function cleanupSessionStorage() {
+            // Remove old corpus context entries
+            const keysToRemove = [];
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                if (key && key.startsWith('corpus_context_')) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(key => {
+                try {
+                    sessionStorage.removeItem(key);
+                } catch (e) {
+                    console.warn('Failed to remove key:', key);
+                }
+            });
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
         
         async function searchCollocates() {

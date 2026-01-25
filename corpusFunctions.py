@@ -139,7 +139,8 @@ def generate_concordance(text, search_term, context_window=5):
             results.append({
                 'left': left,
                 'keyword': center,
-                'right': right
+                'right': right,
+                'position': i  # Add position information
             })
     
     return results
@@ -403,6 +404,61 @@ def get_ngrams():
             'success': True,
             'ngrams': [{'ngram': ng, 'freq': f} for ng, f in ngrams_result],
             'n': n
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/context')
+def show_context():
+    """Display full context for a concordance occurrence"""
+    return render_template('context.html')
+
+@app.route('/api/context', methods=['POST'])
+def get_context():
+    """Get full corpus with highlighted word position"""
+    try:
+        data = request.json
+        corpus_id = data.get('corpus_id', 'custom')
+        custom_text = data.get('text', '')
+        position = data.get('position', 0)
+        
+        # Get text
+        if corpus_id == 'custom' or corpus_id == 'upload':
+            text = custom_text
+        else:
+            text = get_corpus_text(corpus_id)
+            if text is None:
+                return jsonify({'error': f'Corpus "{corpus_id}" not found'}), 404
+        
+        if not text:
+            return jsonify({'error': 'No text provided'}), 400
+        
+        words = text.split()
+        
+        # Validate position
+        if position < 0 or position >= len(words):
+            return jsonify({'error': 'Invalid position'}), 400
+        
+        # Return full corpus with position info
+        keyword = words[position]
+        before_text = ' '.join(words[:position])
+        after_text = ' '.join(words[position+1:])
+        
+        # Get corpus title if available
+        corpus_title = corpus_id
+        if corpus_id not in ['custom', 'upload']:
+            corpora = load_corpora()
+            if corpus_id in corpora:
+                corpus_title = corpora[corpus_id]['title']
+        
+        return jsonify({
+            'success': True,
+            'before': before_text,
+            'keyword': keyword,
+            'after': after_text,
+            'position': position,
+            'total_words': len(words),
+            'corpus_title': corpus_title
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
