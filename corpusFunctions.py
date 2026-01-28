@@ -6,7 +6,9 @@ import nltk
 from nltk import ngrams
 from nltk.tokenize import word_tokenize
 import os
+import tempfile
 from pathlib import Path
+import json
 
 # Download required NLTK data (will only download once)
 try:
@@ -15,6 +17,9 @@ except LookupError:
     nltk.download('punkt')
 
 app = Flask(__name__)
+
+# Configuration
+SHOW_EDUCATORS_HUB = False  # Set to False to hide the Educator's Hub page
 
 # Path to corpora directory
 CORPORA_DIR = os.path.join(os.path.dirname(__file__), 'corpora')
@@ -215,7 +220,7 @@ def detect_cultural_insights(text):
 @app.route('/')
 def index():
     """Render the main page"""
-    return render_template('index.html')
+    return render_template('index.html', show_educators_hub=SHOW_EDUCATORS_HUB)
 
 @app.route('/api/corpora', methods=['GET'])
 def get_corpora_list():
@@ -415,12 +420,15 @@ def show_context():
 
 @app.route('/api/context', methods=['POST'])
 def get_context():
-    """Get full corpus with highlighted word position"""
+    """Get full corpus with highlighted sentence or keyword"""
     try:
         data = request.json
         corpus_id = data.get('corpus_id', 'custom')
         custom_text = data.get('text', '')
-        position = data.get('position', 0)
+        sentence = data.get('sentence', '')
+        highlight_keyword = data.get('highlight_keyword', '')
+        highlight_mode = data.get('highlight_mode', 'keyword')  # 'keyword' or 'sentence'
+        position = data.get('position', None)  # For backwards compatibility
         
         # Get text
         if corpus_id == 'custom' or corpus_id == 'upload':
@@ -433,16 +441,92 @@ def get_context():
         if not text:
             return jsonify({'error': 'No text provided'}), 400
         
-        words = text.split()
+        # Handle old position-based requests (backwards compatibility)
+        if position is not None and not sentence:
+            words = text.split()
+            
+            # Validate position
+            if position < 0 or position >= len(words):
+                return jsonify({'error': 'Invalid position'}), 400
+            
+            # Return full corpus with position info
+            keyword = words[position]
+            before_text = ' '.join(words[:position])
+            after_text = ' '.join(words[position+1:])
+            
+            # Get corpus title if available
+            corpus_title = corpus_id
+            if corpus_id not in ['custom', 'upload']:
+                corpora = load_corpora()
+                if corpus_id in corpora:
+                    corpus_title = corpora[corpus_id]['title']
+            
+            return jsonify({
+                'success': True,
+                'before': before_text,
+                'keyword': keyword,
+                'after': after_text,
+                'position': position,
+                'total_words': len(words),
+                'corpus_title': corpus_title
+            })
         
-        # Validate position
-        if position < 0 or position >= len(words):
-            return jsonify({'error': 'Invalid position'}), 400
+        if not sentence:
+            return jsonify({'error': 'No sentence provided'}), 400
         
-        # Return full corpus with position info
-        keyword = words[position]
-        before_text = ' '.join(words[:position])
-        after_text = ' '.join(words[position+1:])
+        # Find the sentence in the corpus
+        # Try to find exact match first
+        sentence_index = text.find(sentence.strip())
+        
+        # If not found, try with first 50 characters (in case of variations)
+        if sentence_index == -1:
+            sentence_substr = sentence.strip()[:50]
+            sentence_index = text.find(sentence_substr)
+        
+        # If still not found, try with some flexibility (removing extra whitespace)
+        if sentence_index == -1:
+            # Normalize whitespace for comparison
+            normalized_sentence = ' '.join(sentence.split())
+            normalized_text = ' '.join(text.split())
+            normalized_index = normalized_text.find(normalized_sentence[:50])
+            
+            if normalized_index >= 0:
+                # Approximate the position in original text
+                sentence_index = text.find(normalized_sentence[:20])
+        
+        if sentence_index == -1:
+            return jsonify({'error': 'Could not locate sentence in corpus'}), 404
+        
+        # Get the text before and after the sentence
+        before_text = text[:sentence_index]
+        sentence_in_text = text[sentence_index:sentence_index + len(sentence)]
+        after_text = text[sentence_index + len(sentence):]
+        
+        # For keyword mode, find and highlight the keyword within the sentence
+        if highlight_mode == 'keyword' and highlight_keyword:
+            # Find the keyword in the sentence (case-insensitive)
+            keyword_pattern = re.compile(r'\b' + re.escape(highlight_keyword) + r'\b', re.IGNORECASE)
+            match = keyword_pattern.search(sentence_in_text)
+            
+            if match:
+                # Split the sentence around the keyword
+                keyword_start = match.start()
+                keyword_end = match.end()
+                keyword_text = sentence_in_text[keyword_start:keyword_end]
+                sentence_before_keyword = sentence_in_text[:keyword_start]
+                sentence_after_keyword = sentence_in_text[keyword_end:]
+                
+                # Combine with before text
+                before_text = before_text + sentence_before_keyword
+                after_text = sentence_after_keyword + after_text
+                highlighted_text = keyword_text
+            else:
+                # Keyword not found, highlight whole sentence
+                highlighted_text = sentence_in_text
+                after_text = after_text
+        else:
+            # Sentence mode - highlight the whole sentence
+            highlighted_text = sentence_in_text
         
         # Get corpus title if available
         corpus_title = corpus_id
@@ -454,14 +538,223 @@ def get_context():
         return jsonify({
             'success': True,
             'before': before_text,
-            'keyword': keyword,
+            'keyword': highlighted_text,
             'after': after_text,
-            'position': position,
-            'total_words': len(words),
-            'corpus_title': corpus_title
+            'corpus_title': corpus_title,
+            'highlight_mode': highlight_mode
         })
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/metaphor_analysis', methods=['POST'])
+def run_metaphor_analysis():
+    """Run comprehensive metaphor analysis on uploaded corpus"""
+    try:
+        data = request.json
+        text = data.get('text', '')
+        ref_text = data.get('ref_text', '')
+        
+        if not text or not text.strip():
+            return jsonify({'error': 'No text provided'}), 400
+        
+        # IMPORTANT: Patch SQLite FIRST to allow cross-thread usage
+        # The entity linker's knowledge base uses SQLite, which by default doesn't allow
+        # connections to be used across threads. We patch it to enable this.
+        import sqlite3
+        
+        # Store original connect function
+        original_sqlite_connect = sqlite3.connect
+        
+        # Patch sqlite3.connect to add check_same_thread=False
+        def patched_connect(database, timeout=5.0, detect_types=0, isolation_level='DEFERRED', 
+                          check_same_thread=True, factory=sqlite3.Connection, cached_statements=128, uri=False):
+            # Force check_same_thread=False for thread safety in Flask
+            return original_sqlite_connect(database, timeout=timeout, detect_types=detect_types,
+                                         isolation_level=isolation_level, check_same_thread=False,
+                                         factory=factory, cached_statements=cached_statements, uri=uri)
+        
+        sqlite3.connect = patched_connect
+        
+        # Now configure the analysis settings
+        import culturalKeywordsListIdentification_1 as ckl
+        
+        # Store original values
+        original_use_entity_linker = ckl.USE_ENTITY_LINKER
+        original_run_coref = ckl.RUN_COREF
+        original_use_real_spacy = ckl.USE_REAL_SPACY
+        
+        # Enable entity linker with cross-thread SQLite support
+        ckl.USE_ENTITY_LINKER = True
+        ckl.RUN_COREF = False  # Disable coref to speed up analysis
+        ckl.USE_REAL_SPACY = True
+        
+        # Now import the comprehensive metaphor analyzer
+        # The analyzer module now references ckl module directly, so our changes above will apply
+        try:
+            from comprehensive_metaphor_analysis import ComprehensiveMetaphorAnalyzer
+        except ImportError as e:
+            # Restore settings before returning
+            ckl.USE_ENTITY_LINKER = original_use_entity_linker
+            ckl.RUN_COREF = original_run_coref
+            ckl.USE_REAL_SPACY = original_use_real_spacy
+            sqlite3.connect = original_sqlite_connect
+            return jsonify({'error': f'Failed to import metaphor analyzer: {str(e)}'}), 500
+        
+        # Create temporary files for the corpus text
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as tmp_file:
+            tmp_file.write(text)
+            tmp_corpus_path = tmp_file.name
+        
+        # Create temporary file for reference corpus if provided
+        tmp_ref_path = None
+        if ref_text and ref_text.strip():
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as tmp_ref_file:
+                tmp_ref_file.write(ref_text)
+                tmp_ref_path = tmp_ref_file.name
+        
+        try:
+            # Use custom reference corpus if provided, otherwise use default
+            if tmp_ref_path:
+                reference_corpus = tmp_ref_path
+            else:
+                reference_corpus = os.path.join(os.path.dirname(__file__), 'Enigma of China Reference Corpus.txt')
+                
+                if not os.path.exists(reference_corpus):
+                    return jsonify({'error': 'Default reference corpus not found'}), 500
+            
+            try:
+                # Initialize analyzer (flags already set at the beginning of function)
+                # NOTE: The entity linker (with SQLite) will be created inside analyze_cultural_keywords(),
+                # which runs in THIS request thread. This avoids threading issues because the SQLite
+                # connection is created and used in the same thread.
+                analyzer = ComprehensiveMetaphorAnalyzer(
+                    corpus_file=tmp_corpus_path,
+                    reference_corpus_files=[reference_corpus]
+                )
+                
+                # Run complete analysis
+                # First request will be slow (~10-15 seconds) due to entity linker initialization
+                results = analyzer.run_complete_analysis(similarity_threshold=0.5)
+                
+            finally:
+                # Restore original settings
+                ckl.USE_ENTITY_LINKER = original_use_entity_linker
+                ckl.RUN_COREF = original_run_coref
+                ckl.USE_REAL_SPACY = original_use_real_spacy
+                
+                # Restore original SQLite connect function
+                sqlite3.connect = original_sqlite_connect
+            
+            # Clean up the results to make them JSON serializable
+            # Format the results to be more frontend-friendly
+            formatted_results = {
+                'cultural_keywords': {
+                    'total': results['cultural_keywords']['total_keywords'],
+                    'items': []
+                },
+                'signaling_markers': {
+                    'total': len(results['signaling_markers']['markers']),
+                    'items': []
+                },
+                'metaphor_structures': {
+                    'total': results['metaphor_structures']['potential_metaphors_count'],
+                    'items': []
+                }
+            }
+            
+            # Format cultural keywords (top 20)
+            for kw in results['cultural_keywords']['keywords'][:20]:
+                formatted_results['cultural_keywords']['items'].append({
+                    'keyword': kw['keyword'],
+                    'frequency': kw['occurrence_count'],
+                    'g2_score': round(kw['g2_score'], 2),
+                    'occurrences': [
+                        {
+                            'sentence': occ['sentence'],
+                            'sentence_id': occ['sentence_id']
+                        }
+                        for occ in kw['occurrences'][:10]  # Limit to 10 occurrences per keyword
+                    ]
+                })
+            
+            # Format signaling markers (top 20)
+            for marker in results['signaling_markers']['markers'][:20]:
+                formatted_results['signaling_markers']['items'].append({
+                    'marker': marker['marker'],
+                    'frequency': marker['occurrence_count'],
+                    'occurrences': [
+                        {
+                            'sentence': occ['sentence'],
+                            'sentence_id': occ.get('sentence_id', 0)
+                        }
+                        for occ in marker['occurrences'][:10]  # Limit to 10 occurrences per marker
+                    ]
+                })
+            
+            # Format metaphor structures (all potential metaphors)
+            # Create a mapping of sentences to IDs from cultural keywords and signaling markers
+            sentence_to_id = {}
+            for kw in results['cultural_keywords']['keywords']:
+                for occ in kw['occurrences']:
+                    sentence_to_id[occ['sentence']] = occ['sentence_id']
+            
+            for marker in results['signaling_markers']['markers']:
+                for occ in marker['occurrences']:
+                    if 'sentence_id' in occ:
+                        sentence_to_id[occ['sentence']] = occ['sentence_id']
+            
+            for metaphor in results['metaphor_structures']['potential_metaphors']:
+                # Try to find sentence_id by matching the sentence
+                sentence_id = sentence_to_id.get(metaphor['sentence'], 0)
+                
+                formatted_results['metaphor_structures']['items'].append({
+                    'subject': metaphor['subject'],
+                    'be_verb': metaphor['be_verb'],
+                    'predicate': metaphor['predicate'],
+                    'sentence': metaphor['sentence'],
+                    'semantic_distance': round(metaphor['semantic_distance'], 3),
+                    'sentence_id': sentence_id
+                })
+            
+            return jsonify({
+                'success': True,
+                'results': formatted_results
+            })
+            
+        finally:
+            # Clean up temporary files
+            try:
+                os.unlink(tmp_corpus_path)
+            except:
+                pass
+            
+            if tmp_ref_path:
+                try:
+                    os.unlink(tmp_ref_path)
+                except:
+                    pass
+                
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        
+        # Make sure to restore settings even on error
+        try:
+            if 'original_use_entity_linker' in locals():
+                import culturalKeywordsListIdentification_1 as ckl
+                ckl.USE_ENTITY_LINKER = original_use_entity_linker
+                ckl.RUN_COREF = original_run_coref
+                ckl.USE_REAL_SPACY = original_use_real_spacy
+            
+            if 'original_sqlite_connect' in locals():
+                import sqlite3
+                sqlite3.connect = original_sqlite_connect
+        except:
+            pass
+            
+        return jsonify({'error': f'Analysis failed: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

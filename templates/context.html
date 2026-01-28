@@ -93,7 +93,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const contextKey = urlParams.get('key');
         
-        let corpusId, position, customText;
+        let corpusId, position, sentence, highlightKeyword, highlightMode, customText;
         
         // Retrieve data from sessionStorage
         if (contextKey) {
@@ -102,7 +102,17 @@
                 if (storedData) {
                     const contextData = JSON.parse(storedData);
                     corpusId = contextData.corpus_id;
-                    position = contextData.position;
+                    
+                    // Check if it's old position-based data or new sentence-based data
+                    if (contextData.sentence !== undefined) {
+                        // New sentence-based approach
+                        sentence = contextData.sentence;
+                        highlightKeyword = contextData.highlight_keyword || '';
+                        highlightMode = contextData.highlight_mode || 'keyword';
+                    } else if (contextData.position !== undefined) {
+                        // Old position-based approach (for backwards compatibility)
+                        position = contextData.position;
+                    }
                     
                     // Get text from opener window if available (for large texts)
                     if (contextData.textStorageKey && window.opener && window.opener.corpusTextStorage) {
@@ -129,21 +139,43 @@
         window.addEventListener('DOMContentLoaded', loadContext);
 
         async function loadContext() {
-            if (!corpusId || position === undefined) {
+            if (!corpusId) {
                 return; // Error already shown
             }
             
+            // Check which mode we're in
+            if (sentence === undefined && position === undefined) {
+                showError('No sentence or position data provided.');
+                return;
+            }
+            
             try {
+                let requestBody;
+                
+                if (sentence !== undefined) {
+                    // New sentence-based approach
+                    requestBody = {
+                        corpus_id: corpusId,
+                        text: customText || '',
+                        sentence: sentence,
+                        highlight_keyword: highlightKeyword || '',
+                        highlight_mode: highlightMode || 'keyword'
+                    };
+                } else {
+                    // Old position-based approach (backwards compatibility)
+                    requestBody = {
+                        corpus_id: corpusId,
+                        text: customText || '',
+                        position: position
+                    };
+                }
+                
                 const response = await fetch('/api/context', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        corpus_id: corpusId,
-                        text: customText || '',
-                        position: position
-                    })
+                    body: JSON.stringify(requestBody)
                 });
 
                 const data = await response.json();
@@ -190,11 +222,23 @@
             // Display corpus title
             document.getElementById('corpus-title').textContent = data.corpus_title || 'Custom Text';
 
-            // Display position info
-            document.getElementById('position-info').textContent = 
-                `Word ${data.position + 1} of ${data.total_words.toLocaleString()}`;
+            // Display position info or highlight mode
+            const positionInfoElement = document.getElementById('position-info');
+            if (data.total_words !== undefined) {
+                // Old position-based display
+                positionInfoElement.textContent = `Word ${data.position + 1} of ${data.total_words.toLocaleString()}`;
+            } else if (data.highlight_mode) {
+                // New mode display
+                if (data.highlight_mode === 'keyword') {
+                    positionInfoElement.textContent = 'Keyword highlighted';
+                } else {
+                    positionInfoElement.textContent = 'Sentence highlighted';
+                }
+            } else {
+                positionInfoElement.textContent = 'Highlighted text';
+            }
 
-            // Display full corpus with highlighted keyword
+            // Display full corpus with highlighted keyword or sentence
             const contextHTML = `
                 <span class="text-gray-700">${escapeHtml(data.before)}</span><span id="highlighted-word" class="highlight">${escapeHtml(data.keyword)}</span><span class="text-gray-700">${escapeHtml(data.after)}</span>
             `;

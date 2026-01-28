@@ -73,7 +73,9 @@
                             <a href="#research-about" onclick="showPage('research', document.querySelector('a[href=\'#research\']')); document.getElementById('research-about').scrollIntoView();" class="block px-4 py-2 text-gray-700 hover:bg-blue-50">About the Project</a>
                          </div>
                     </div>
+                    {% if show_educators_hub %}
                     <a href="#educators" class="nav-link" onclick="showPage('educators', this)">Educator's Hub</a>
+                    {% endif %}
                     <a href="#concepts" class="nav-link" onclick="showPage('concepts', this)">Key Concepts</a>
                     <a href="#news" class="nav-link" onclick="showPage('news', this)">News & Events</a>
                 </nav>
@@ -91,7 +93,9 @@
             <a href="#home" class="block py-2 text-gray-700" onclick="showPage('home', this); closeMobileMenu();">Home</a>
             <a href="#gateway" class="block py-2 text-gray-700" onclick="showPage('gateway', this); closeMobileMenu();">Explore the Gateway</a>
             <a href="#research" class="block py-2 text-gray-700" onclick="showPage('research', this); closeMobileMenu();">Our Research</a>
+            {% if show_educators_hub %}
             <a href="#educators" class="block py-2 text-gray-700" onclick="showPage('educators', this); closeMobileMenu();">Educator's Hub</a>
+            {% endif %}
             <a href="#concepts" class="block py-2 text-gray-700" onclick="showPage('concepts', this); closeMobileMenu();">Key Concepts</a>
             <a href="#news" class="block py-2 text-gray-700" onclick="showPage('news', this); closeMobileMenu();">News & Events</a>
         </div>
@@ -172,21 +176,48 @@
                         
                         <!-- File Upload Section (hidden by default) -->
                         <div id="upload-section" class="mb-4" style="display: none;">
-                            <label for="file-upload" class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer bg-blue-50 hover:bg-blue-100 transition">
-                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                    <svg class="w-10 h-10 mb-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                    </svg>
-                                    <p class="mb-2 text-sm text-gray-700"><span class="font-semibold">Click to upload</span> or drag and drop</p>
-                                    <p class="text-xs text-gray-500">Text files only (.txt, max 10MB)</p>
-                                </div>
-                                <input id="file-upload" type="file" accept=".txt" class="hidden" onchange="handleFileUpload(event)" />
-                            </label>
-                            <div id="upload-status" class="mt-2 text-sm"></div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Target Corpus</label>
+                                <label for="file-upload" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer bg-blue-50 hover:bg-blue-100 transition">
+                                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                        <svg class="w-8 h-8 mb-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                        </svg>
+                                        <p class="mb-1 text-sm text-gray-700"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                                        <p class="text-xs text-gray-500">Text files only (.txt, max 10MB)</p>
+                                    </div>
+                                    <input id="file-upload" type="file" accept=".txt" class="hidden" onchange="handleFileUpload(event)" />
+                                </label>
+                                <div id="upload-status" class="mt-2 text-sm"></div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Reference Corpus</label>
+                                <label for="ref-file-upload" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-green-300 rounded-lg cursor-pointer bg-green-50 hover:bg-green-100 transition">
+                                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                        <svg class="w-8 h-8 mb-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                        </svg>
+                                        <p class="mb-1 text-sm text-gray-700"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                                        <p class="text-xs text-gray-500">Text files only (.txt, max 10MB)</p>
+                                    </div>
+                                    <input id="ref-file-upload" type="file" accept=".txt" class="hidden" onchange="handleRefFileUpload(event)" />
+                                </label>
+                                <div id="ref-upload-status" class="mt-2 text-sm"></div>
+                            </div>
                         </div>
                         
                         <!-- Text Input Section -->
-                        <textarea id="corpus-input" class="w-full h-48 p-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Or paste your text here..."></textarea>
+                        <div id="text-input-section">
+                            <div class="mb-4">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Target Text</label>
+                                <textarea id="corpus-input" class="w-full h-48 p-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Paste your text here..."></textarea>
+                            </div>
+                            <div id="ref-text-section">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Reference Text</label>
+                                <textarea id="ref-corpus-input" class="w-full h-48 p-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Paste your reference text here..."></textarea>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Analysis Results -->
@@ -368,6 +399,7 @@
             </div>
         </section>
         
+        {% if show_educators_hub %}
         <!-- Educator's Hub Section -->
         <section id="educators" class="page-section">
             <div class="container mx-auto px-6 py-16">
@@ -415,6 +447,7 @@
                 </div>
             </div>
         </section>
+        {% endif %}
 
         <!-- Key Concepts Section -->
         <section id="concepts" class="page-section">
@@ -502,7 +535,9 @@
                     <ul class="space-y-2">
                         <li><a href="#about" onclick="showPage('research', document.querySelector('a[href=\'#research\']')); document.getElementById('research-about').scrollIntoView();" class="text-gray-400 hover:text-white">About the Project</a></li>
                         <li><a href="#gateway" onclick="showPage('gateway', document.querySelector('a[href=\'#gateway\']'))" class="text-gray-400 hover:text-white">Corpus Tools</a></li>
+                        {% if show_educators_hub %}
                         <li><a href="#educators" onclick="showPage('educators', document.querySelector('a[href=\'#educators\']'))" class="text-gray-400 hover:text-white">For Educators</a></li>
+                        {% endif %}
                         <li><a href="#publications" onclick="showPage('research', document.querySelector('a[href=\'#research\']')); document.getElementById('research-publications').scrollIntoView();" class="text-gray-400 hover:text-white">Publications</a></li>
                     </ul>
                 </div>
@@ -528,7 +563,8 @@
         // --- Global variable to store current corpus data ---
         let currentCorpusData = {
             corpus_id: 'custom',
-            text: ''
+            text: '',
+            refText: ''
         };
         
         // --- Global storage for large texts (to avoid sessionStorage quota issues) ---
@@ -730,36 +766,46 @@
 
         // --- Corpus Analysis Logic ---
         document.getElementById('corpus-select').addEventListener('change', function() {
+            const textInputSection = document.getElementById('text-input-section');
             const inputBox = document.getElementById('corpus-input');
+            const refTextSection = document.getElementById('ref-text-section');
+            const refInputBox = document.getElementById('ref-corpus-input');
             const uploadSection = document.getElementById('upload-section');
             const previousCorpusId = currentCorpusData.corpus_id;
             currentCorpusData.corpus_id = this.value;
             
             if (this.value === 'custom') {
-                // Show text input, hide upload
-                inputBox.style.display = 'block';
+                // Show text input with reference section, hide upload
+                textInputSection.style.display = 'block';
                 uploadSection.style.display = 'none';
+                refTextSection.style.display = 'block';
                 inputBox.value = '';
                 inputBox.readOnly = false;
                 inputBox.placeholder = 'Paste your text here...';
+                refInputBox.value = '';
                 currentCorpusData.text = '';
+                currentCorpusData.refText = '';
             } else if (this.value === 'upload') {
                 // Show upload section, hide text input
-                inputBox.style.display = 'none';
+                textInputSection.style.display = 'none';
                 uploadSection.style.display = 'block';
                 // Only clear text if this is a manual selection, not a programmatic one after upload
                 if (previousCorpusId !== 'upload') {
                     currentCorpusData.text = '';
+                    currentCorpusData.refText = '';
                     document.getElementById('upload-status').innerHTML = '';
+                    document.getElementById('ref-upload-status').innerHTML = '';
                 }
             } else {
                 // Pre-loaded corpus selected
-                inputBox.style.display = 'block';
+                textInputSection.style.display = 'block';
                 uploadSection.style.display = 'none';
+                refTextSection.style.display = 'none';
                 inputBox.value = '[Pre-loaded corpus selected. Click "Analyze Text" to view analysis.]';
                 inputBox.readOnly = true;
                 // Clear any previously uploaded/custom text
                 currentCorpusData.text = '';
+                currentCorpusData.refText = '';
             }
         });
         
@@ -767,6 +813,13 @@
         document.getElementById('corpus-input').addEventListener('input', function() {
             if (currentCorpusData.corpus_id === 'custom') {
                 currentCorpusData.text = this.value;
+            }
+        });
+        
+        // Update reference text when user types
+        document.getElementById('ref-corpus-input').addEventListener('input', function() {
+            if (currentCorpusData.corpus_id === 'custom') {
+                currentCorpusData.refText = this.value;
             }
         });
         
@@ -806,12 +859,69 @@
                     
                     // Show success message
                     const wordCount = data.content.split(/\s+/).filter(w => w.length > 0).length;
-                    statusDiv.innerHTML = `<p class="text-green-600">✅ File uploaded: <strong>${data.filename}</strong> (${wordCount.toLocaleString()} words)</p>`;
+                    statusDiv.innerHTML = `<p class="text-green-600">✅ Target corpus uploaded: <strong>${data.filename}</strong> (${wordCount.toLocaleString()} words)</p>`;
                     
-                    // Auto-analyze after upload
-                    setTimeout(() => {
-                        runFullAnalysis();
-                    }, 500);
+                    // Check if reference corpus is also uploaded
+                    const refStatusDiv = document.getElementById('ref-upload-status');
+                    if (currentCorpusData.refText) {
+                        statusDiv.innerHTML += '<p class="text-blue-600 mt-1">✓ Both corpora ready. Click "Analyze Text" to begin.</p>';
+                    } else {
+                        statusDiv.innerHTML += '<p class="text-yellow-600 mt-1">⚠️ Please upload a reference corpus file to continue.</p>';
+                    }
+                } else {
+                    statusDiv.innerHTML = `<p class="text-red-600">❌ Error: ${data.error}</p>`;
+                    event.target.value = ''; // Reset file input
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                statusDiv.innerHTML = '<p class="text-red-600">❌ Upload failed. Please try again.</p>';
+                event.target.value = ''; // Reset file input
+            }
+        }
+        
+        // Handle reference file upload
+        async function handleRefFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Check file size (max 10MB)
+            const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+            if (file.size > maxSize) {
+                alert('File is too large. Maximum size is 10MB.');
+                event.target.value = ''; // Reset file input
+                return;
+            }
+            
+            // Show uploading status
+            const statusDiv = document.getElementById('ref-upload-status');
+            statusDiv.innerHTML = '<p class="text-blue-600">📤 Uploading reference corpus...</p>';
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Store the reference corpus content
+                    currentCorpusData.refText = data.content;
+                    
+                    // Show success message
+                    const wordCount = data.content.split(/\s+/).filter(w => w.length > 0).length;
+                    statusDiv.innerHTML = `<p class="text-green-600">✅ Reference corpus uploaded: <strong>${data.filename}</strong> (${wordCount.toLocaleString()} words)</p>`;
+                    
+                    // Check if target corpus is also uploaded
+                    if (currentCorpusData.text) {
+                        statusDiv.innerHTML += '<p class="text-blue-600 mt-1">✓ Both corpora ready. Click "Analyze Text" to begin.</p>';
+                    } else {
+                        statusDiv.innerHTML += '<p class="text-yellow-600 mt-1">⚠️ Please upload a target corpus file to continue.</p>';
+                    }
                 } else {
                     statusDiv.innerHTML = `<p class="text-red-600">❌ Error: ${data.error}</p>`;
                     event.target.value = ''; // Reset file input
@@ -828,17 +938,34 @@
             
             // Get text based on corpus type
             let text = '';
+            let refText = '';
+            
             if (selectedCorpus === 'custom') {
                 text = document.getElementById('corpus-input').value;
+                refText = document.getElementById('ref-corpus-input').value;
+                
                 if (text.trim() === "") {
-                    alert('Please paste some text to analyze.');
+                    alert('Please paste target text to analyze.');
                     return;
                 }
+                if (refText.trim() === "") {
+                    alert('Please paste reference text for comparison.');
+                    return;
+                }
+                
+                currentCorpusData.text = text;
+                currentCorpusData.refText = refText;
             } else if (selectedCorpus === 'upload') {
                 // For uploaded files, text is stored in currentCorpusData
                 text = currentCorpusData.text;
+                refText = currentCorpusData.refText;
+                
                 if (!text || text.trim() === "") {
-                    alert('Please upload a text file first.');
+                    alert('Please upload a target corpus file first.');
+                    return;
+                }
+                if (!refText || refText.trim() === "") {
+                    alert('Please upload a reference corpus file for comparison.');
                     return;
                 }
             }
@@ -889,6 +1016,11 @@
                             <input type="text" id="collocates-search" placeholder="Search term..." class="w-full p-2 border rounded-md" onkeypress="if(event.key==='Enter') searchCollocates()">
                             <button onclick="searchCollocates()" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Search</button>
                         </div>`;
+                    
+                    // For uploaded or custom corpus, run comprehensive metaphor analysis
+                    if (selectedCorpus === 'upload' || selectedCorpus === 'custom') {
+                        runMetaphorAnalysis(text, currentCorpusData.refText);
+                    }
                 } else {
                     alert('Analysis failed: ' + (data.error || 'Unknown error'));
                 }
@@ -1201,6 +1333,325 @@
             }
             
             document.getElementById('collocates').innerHTML = html;
+        }
+        
+        // --- Metaphor Analysis Functions ---
+        async function runMetaphorAnalysis(text, refText) {
+            const contentDiv = document.getElementById('cultural-insights-content');
+            contentDiv.innerHTML = `
+                <div class="space-y-2">
+                    <p class="text-gray-600">🔍 Running comprehensive metaphor analysis...</p>
+                    <p class="text-xs text-gray-500">This may take 2-3 minutes for large texts.</p>
+                    <div class="mt-4 space-y-1 text-xs text-gray-500">
+                        <p>⏳ Phase 1: Identifying cultural keywords...</p>
+                        <p>⏳ Phase 2: Detecting signaling markers...</p>
+                        <p>⏳ Phase 3: Finding metaphor structures...</p>
+                    </div>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('/api/metaphor_analysis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        ref_text: refText || ''
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayMetaphorResults(data.results);
+                } else {
+                    contentDiv.innerHTML = `<p class="text-red-600">❌ Analysis failed: ${data.error}</p>`;
+                }
+            } catch (error) {
+                console.error('Metaphor analysis error:', error);
+                contentDiv.innerHTML = '<p class="text-red-600">❌ An error occurred during metaphor analysis.</p>';
+            }
+        }
+        
+        function displayMetaphorResults(results) {
+            const contentDiv = document.getElementById('cultural-insights-content');
+            
+            let html = '<div class="text-sm space-y-4 max-h-[600px] overflow-y-auto">';
+            
+            // Cultural Keywords Section
+            html += '<div class="border rounded-lg overflow-hidden">';
+            html += `<div class="bg-blue-50 border-b cursor-pointer hover:bg-blue-100 transition" onclick="toggleMetaphorSection('cultural-keywords-section')">
+                <div class="p-3 flex items-center justify-between">
+                    <h4 class="font-bold text-blue-800 flex items-center">
+                        <span id="cultural-keywords-icon" class="mr-2">▼</span>
+                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded mr-2">${results.cultural_keywords.total}</span>
+                        Cultural Keywords
+                    </h4>
+                    <span class="text-xs text-blue-600">Click to expand/collapse</span>
+                </div>
+            </div>`;
+            
+            html += '<div id="cultural-keywords-section" class="p-3 bg-white">';
+            if (results.cultural_keywords.items.length > 0) {
+                html += '<div class="space-y-2">';
+                results.cultural_keywords.items.slice(0, 20).forEach((item, idx) => {
+                    const itemId = `ck-item-${idx}`;
+                    html += `<div class="border rounded">
+                        <div class="flex items-center justify-between p-2 cursor-pointer hover:bg-blue-50 transition" onclick="toggleMetaphorItem('${itemId}')">
+                            <div class="flex items-center flex-1">
+                                <span id="${itemId}-icon" class="text-blue-500 mr-2">▶</span>
+                                <span class="font-semibold text-gray-800">${idx + 1}. ${escapeHtml(item.keyword)}</span>
+                            </div>
+                            <span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">${item.frequency} occurrence${item.frequency !== 1 ? 's' : ''}</span>
+                        </div>`;
+                    
+                    // All occurrences (hidden by default)
+                    if (item.occurrences && item.occurrences.length > 0) {
+                        html += `<div id="${itemId}" class="ml-4 mr-2 mb-2 space-y-1 border-t pt-2" style="display: none;">`;
+                        item.occurrences.forEach((occ, occIdx) => {
+                            const shortSentence = occ.sentence.length > 120 ? occ.sentence.substring(0, 120) + '...' : occ.sentence;
+                            html += `<div class="text-xs text-gray-600 hover:bg-blue-50 cursor-pointer p-1 rounded transition" onclick="event.stopPropagation(); openContextByKeyword('${escapeForJs(occ.sentence)}', '${escapeForJs(item.keyword)}')">
+                                <span class="text-blue-500 font-bold">${occIdx + 1}.</span> ${escapeHtml(shortSentence)}
+                            </div>`;
+                        });
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                });
+                
+                if (results.cultural_keywords.items.length > 20) {
+                    html += `<p class="text-xs text-gray-500 italic text-center mt-2">Showing top 20 of ${results.cultural_keywords.items.length} keywords</p>`;
+                }
+                html += '</div>';
+            } else {
+                html += '<p class="text-gray-500 text-sm">No cultural keywords found.</p>';
+            }
+            html += '</div></div>';
+            
+            // Signaling Markers Section
+            html += '<div class="border rounded-lg overflow-hidden">';
+            html += `<div class="bg-green-50 border-b cursor-pointer hover:bg-green-100 transition" onclick="toggleMetaphorSection('signaling-markers-section')">
+                <div class="p-3 flex items-center justify-between">
+                    <h4 class="font-bold text-green-800 flex items-center">
+                        <span id="signaling-markers-icon" class="mr-2">▼</span>
+                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded mr-2">${results.signaling_markers.total}</span>
+                        Signaling Markers
+                    </h4>
+                    <span class="text-xs text-green-600">Click to expand/collapse</span>
+                </div>
+            </div>`;
+            
+            html += '<div id="signaling-markers-section" class="p-3 bg-white">';
+            if (results.signaling_markers.items.length > 0) {
+                html += '<div class="space-y-2">';
+                results.signaling_markers.items.slice(0, 20).forEach((item, idx) => {
+                    const itemId = `sm-item-${idx}`;
+                    html += `<div class="border rounded">
+                        <div class="flex items-center justify-between p-2 cursor-pointer hover:bg-green-50 transition" onclick="toggleMetaphorItem('${itemId}')">
+                            <div class="flex items-center flex-1">
+                                <span id="${itemId}-icon" class="text-green-500 mr-2">▶</span>
+                                <span class="font-semibold text-gray-800">${idx + 1}. "${escapeHtml(item.marker)}"</span>
+                            </div>
+                            <span class="text-xs bg-green-50 text-green-700 px-2 py-1 rounded">${item.frequency} occurrence${item.frequency !== 1 ? 's' : ''}</span>
+                        </div>`;
+                    
+                    // All occurrences (hidden by default)
+                    if (item.occurrences && item.occurrences.length > 0) {
+                        html += `<div id="${itemId}" class="ml-4 mr-2 mb-2 space-y-1 border-t pt-2" style="display: none;">`;
+                        item.occurrences.forEach((occ, occIdx) => {
+                            const shortSentence = occ.sentence.length > 120 ? occ.sentence.substring(0, 120) + '...' : occ.sentence;
+                            html += `<div class="text-xs text-gray-600 hover:bg-green-50 cursor-pointer p-1 rounded transition" onclick="event.stopPropagation(); openContextByKeyword('${escapeForJs(occ.sentence)}', '${escapeForJs(item.marker)}')">
+                                <span class="text-green-500 font-bold">${occIdx + 1}.</span> ${escapeHtml(shortSentence)}
+                            </div>`;
+                        });
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                });
+                
+                if (results.signaling_markers.items.length > 20) {
+                    html += `<p class="text-xs text-gray-500 italic text-center mt-2">Showing top 20 of ${results.signaling_markers.items.length} markers</p>`;
+                }
+                html += '</div>';
+            } else {
+                html += '<p class="text-gray-500 text-sm">No signaling markers found.</p>';
+            }
+            html += '</div></div>';
+            
+            // Metaphor Structures Section
+            html += '<div class="border rounded-lg overflow-hidden">';
+            html += `<div class="bg-purple-50 border-b cursor-pointer hover:bg-purple-100 transition" onclick="toggleMetaphorSection('metaphor-structures-section')">
+                <div class="p-3 flex items-center justify-between">
+                    <h4 class="font-bold text-purple-800 flex items-center">
+                        <span id="metaphor-structures-icon" class="mr-2">▼</span>
+                        <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded mr-2">${results.metaphor_structures.total}</span>
+                        "X is Y" Metaphor Structures
+                    </h4>
+                    <span class="text-xs text-purple-600">Click to expand/collapse</span>
+                </div>
+            </div>`;
+            
+            html += '<div id="metaphor-structures-section" class="p-3 bg-white">';
+            if (results.metaphor_structures.items.length > 0) {
+                html += '<div class="space-y-2">';
+                results.metaphor_structures.items.forEach((item, idx) => {
+                    const shortSentence = item.sentence.length > 120 ? item.sentence.substring(0, 120) + '...' : item.sentence;
+                    html += `<div class="bg-white border rounded p-2 hover:bg-purple-50 cursor-pointer transition" onclick="openContextBySentence('${escapeForJs(item.sentence)}')">
+                        <div class="font-semibold text-gray-800 text-sm mb-1">
+                            ${idx + 1}. <span class="text-purple-700">${escapeHtml(item.subject)}</span> ${escapeHtml(item.be_verb)} <span class="text-purple-700">${escapeHtml(item.predicate)}</span>
+                            <span class="text-xs text-gray-500 ml-2">(distance: ${item.semantic_distance})</span>
+                        </div>
+                        <div class="text-xs text-gray-600">
+                            <span class="text-purple-500">▸</span> ${escapeHtml(shortSentence)}
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+            } else {
+                html += '<p class="text-gray-500 text-sm">No metaphor structures found.</p>';
+            }
+            html += '</div></div>';
+            
+            html += '</div>';
+            
+            contentDiv.innerHTML = html;
+        }
+        
+        function toggleMetaphorSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const icon = document.getElementById(sectionId.replace('-section', '-icon'));
+            
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                icon.textContent = '▼';
+            } else {
+                section.style.display = 'none';
+                icon.textContent = '▶';
+            }
+        }
+        
+        function toggleMetaphorItem(itemId) {
+            const item = document.getElementById(itemId);
+            const icon = document.getElementById(itemId + '-icon');
+            
+            if (item.style.display === 'none') {
+                item.style.display = 'block';
+                icon.textContent = '▼';
+            } else {
+                item.style.display = 'none';
+                icon.textContent = '▶';
+            }
+        }
+        
+        function openContextByKeyword(sentenceText, keyword) {
+            // Open context and highlight a specific keyword within the sentence
+            if (!currentCorpusData.text) {
+                alert('Text not available');
+                return;
+            }
+            
+            try {
+                // Clean up old sessionStorage entries first
+                cleanupSessionStorage();
+                
+                // Generate a unique key for this context view
+                const contextKey = `corpus_context_latest`;
+                
+                // For custom/uploaded text, store in global variable to avoid sessionStorage quota
+                let textStorageKey = null;
+                if ((currentCorpusData.corpus_id === 'custom' || currentCorpusData.corpus_id === 'upload') && currentCorpusData.text) {
+                    textStorageKey = `text_latest`;
+                    window.corpusTextStorage[textStorageKey] = currentCorpusData.text;
+                }
+                
+                // Store metadata in sessionStorage
+                const contextData = {
+                    corpus_id: currentCorpusData.corpus_id,
+                    sentence: sentenceText,
+                    highlight_keyword: keyword,
+                    highlight_mode: 'keyword',
+                    textStorageKey: textStorageKey,
+                    timestamp: Date.now()
+                };
+                
+                sessionStorage.setItem(contextKey, JSON.stringify(contextData));
+                
+                // Build URL with just the key
+                const url = `/context?key=${contextKey}`;
+                
+                // Open context in new window/tab
+                const newWindow = window.open(url, '_blank', 'width=1000,height=800,scrollbars=yes,resizable=yes');
+                
+                // Check if popup was blocked
+                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                    if (confirm('Popup was blocked by your browser. Open context in a new tab instead?')) {
+                        window.open(url, '_blank');
+                    }
+                }
+            } catch (error) {
+                console.error('Error opening context:', error);
+                alert('Failed to open context view: ' + error.message);
+            }
+        }
+        
+        function openContextBySentence(sentenceText) {
+            // Open context and highlight the full sentence
+            if (!currentCorpusData.text) {
+                alert('Text not available');
+                return;
+            }
+            
+            try {
+                // Clean up old sessionStorage entries first
+                cleanupSessionStorage();
+                
+                // Generate a unique key for this context view
+                const contextKey = `corpus_context_latest`;
+                
+                // For custom/uploaded text, store in global variable to avoid sessionStorage quota
+                let textStorageKey = null;
+                if ((currentCorpusData.corpus_id === 'custom' || currentCorpusData.corpus_id === 'upload') && currentCorpusData.text) {
+                    textStorageKey = `text_latest`;
+                    window.corpusTextStorage[textStorageKey] = currentCorpusData.text;
+                }
+                
+                // Store metadata in sessionStorage
+                const contextData = {
+                    corpus_id: currentCorpusData.corpus_id,
+                    sentence: sentenceText,
+                    highlight_mode: 'sentence',
+                    textStorageKey: textStorageKey,
+                    timestamp: Date.now()
+                };
+                
+                sessionStorage.setItem(contextKey, JSON.stringify(contextData));
+                
+                // Build URL with just the key
+                const url = `/context?key=${contextKey}`;
+                
+                // Open context in new window/tab
+                const newWindow = window.open(url, '_blank', 'width=1000,height=800,scrollbars=yes,resizable=yes');
+                
+                // Check if popup was blocked
+                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                    if (confirm('Popup was blocked by your browser. Open context in a new tab instead?')) {
+                        window.open(url, '_blank');
+                    }
+                }
+            } catch (error) {
+                console.error('Error opening context:', error);
+                alert('Failed to open context view: ' + error.message);
+            }
+        }
+        
+        function escapeForJs(str) {
+            return str.replace(/\\/g, '\\\\')
+                      .replace(/'/g, "\\'")
+                      .replace(/"/g, '\\"')
+                      .replace(/\n/g, '\\n')
+                      .replace(/\r/g, '\\r');
         }
 
 
