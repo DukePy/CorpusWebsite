@@ -24,6 +24,9 @@ SHOW_EDUCATORS_HUB = False  # Set to False to hide the Educator's Hub page
 # Path to corpora directory
 CORPORA_DIR = os.path.join(os.path.dirname(__file__), 'corpora')
 
+# Path to publications file
+PUBLICATIONS_FILE = os.path.join(os.path.dirname(__file__), 'publicationList.txt')
+
 def load_corpora():
     """Load all corpus files from the corpora directory"""
     corpora = {}
@@ -57,6 +60,72 @@ def get_corpus_text(corpus_id):
     if corpus_id in corpora:
         return corpora[corpus_id]['content']
     return None
+
+def load_publications():
+    """Load and parse the publications list from publicationList.txt"""
+    publications = {
+        'Journal article': [],
+        'Conference article': [],
+        'Book chapter': [],
+        'Under review': [],
+        'In preparation': []
+    }
+    
+    if not os.path.exists(PUBLICATIONS_FILE):
+        return publications
+    
+    try:
+        with open(PUBLICATIONS_FILE, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        current_category = None
+        current_entry = []
+        
+        # Pattern to detect a new entry starting with author names
+        # Matches patterns like "Ma, Q., & Su, X." or "Su, X., Ma, Q.,"
+        new_entry_pattern = re.compile(r'^[A-Z][a-z]+,\s+[A-Z]\.,')
+        
+        for line in content.split('\n'):
+            line_stripped = line.strip()
+            
+            # Check if this is a category header
+            if line_stripped.endswith(':') and line_stripped[:-1] in publications:
+                # Save previous entry if exists
+                if current_category and current_entry:
+                    entry_text = ' '.join(current_entry).strip()
+                    if entry_text:
+                        publications[current_category].append(entry_text)
+                    current_entry = []
+                
+                current_category = line_stripped[:-1]
+            elif line_stripped and current_category:
+                # Check if this line starts a new entry (author pattern)
+                if new_entry_pattern.match(line_stripped) and current_entry:
+                    # Save previous entry
+                    entry_text = ' '.join(current_entry).strip()
+                    if entry_text:
+                        publications[current_category].append(entry_text)
+                    current_entry = [line_stripped]
+                else:
+                    # Continue current entry
+                    current_entry.append(line_stripped)
+            elif not line_stripped and current_category and current_entry:
+                # Empty line indicates end of current entry
+                entry_text = ' '.join(current_entry).strip()
+                if entry_text:
+                    publications[current_category].append(entry_text)
+                current_entry = []
+        
+        # Don't forget the last entry
+        if current_category and current_entry:
+            entry_text = ' '.join(current_entry).strip()
+            if entry_text:
+                publications[current_category].append(entry_text)
+        
+        return publications
+    except Exception as e:
+        print(f"Error loading publications: {e}")
+        return publications
 
 # Cultural insights database
 CULTURAL_INSIGHTS = [
@@ -176,10 +245,26 @@ def extract_ngrams(tokens, n=3):
     ngram_freq = Counter([' '.join(gram) for gram in n_grams])
     return ngram_freq.most_common(100)
 
-def calculate_keyness(text, reference_corpus=None):
-    """Calculate keywords using simplified keyness score"""
-    tokens = tokenize_text(text)
-    freq = Counter(tokens)
+def calculate_keyness(text, reference_corpus=None, sort_by='keyness', sort_order='desc', 
+                      start_rank=1, end_rank=100):
+    """
+    Calculate keywords using G² (log-likelihood) score comparing target and reference corpus.
+    Similar to the cultural keywords function but without semantic filtering.
+    
+    Args:
+        text: Target corpus text
+        reference_corpus: Reference corpus text (optional)
+        sort_by: Sort criterion - 'keyness' (G² score) or 'freq' (frequency)
+        sort_order: 'desc' (descending) or 'asc' (ascending)
+        start_rank: Starting rank for pagination (1-based)
+        end_rank: Ending rank for pagination (inclusive)
+    
+    Returns:
+        dict: Contains 'keywords' list and metadata
+    """
+    # Tokenize target corpus
+    target_tokens = tokenize_text(text)
+    target_counts = Counter(target_tokens)
     
     # Common English words to filter out (simplified stopword list)
     stopwords = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 
@@ -189,20 +274,117 @@ def calculate_keyness(text, reference_corpus=None):
                  'she', 'it', 'we', 'they', 'them', 'their', 'this', 'that', 'these',
                  'those', 'my', 'your', 'his', 'her', 'its', 'our'}
     
+    # If no reference corpus provided, use simplified frequency-based scoring
+    if not reference_corpus or not reference_corpus.strip():
+        keywords = []
+        for word, count in target_counts.items():
+            if len(word) > 2 and word not in stopwords:
+                # Simplified keyness: frequency * word length (rewards longer, unique words)
+                keyness_score = count * (len(word) / 3.0) * 5
+                keywords.append({
+                    'word': word,
+                    'freq': count,
+                    'freq_ref': 0,
+                    'keyness': round(keyness_score, 1)
+                })
+        
+        # Sort by specified criterion
+        reverse = (sort_order == 'desc')
+        if sort_by == 'freq':
+            keywords.sort(key=lambda x: x['freq'], reverse=reverse)
+        else:
+            keywords.sort(key=lambda x: x['keyness'], reverse=reverse)
+        
+        # Apply pagination
+        total_keywords = len(keywords)
+        start_idx = max(0, start_rank - 1)
+        end_idx = min(total_keywords, end_rank)
+        paginated_keywords = keywords[start_idx:end_idx]
+        
+        # Add rank to each keyword
+        for i, kw in enumerate(paginated_keywords):
+            kw['rank'] = start_idx + i + 1
+        
+        return {
+            'keywords': paginated_keywords,
+            'total_keywords': total_keywords,
+            'start_rank': start_rank,
+            'end_rank': end_rank,
+            'sort_by': sort_by,
+            'sort_order': sort_order,
+            'has_reference_corpus': False
+        }
+    
+    # Tokenize reference corpus
+    ref_tokens = tokenize_text(reference_corpus)
+    ref_counts = Counter(ref_tokens)
+    
+    # Calculate corpus sizes
+    c = len(target_tokens)  # Target corpus size
+    d = len(ref_tokens)     # Reference corpus size
+    N = c + d               # Total corpus size
+    
+    # Calculate G² (log-likelihood) for each word
     keywords = []
-    for word, count in freq.most_common(50):
-        if len(word) > 2 and word not in stopwords:
-            # Simplified keyness: frequency * word length (rewards longer, unique words)
-            keyness_score = count * (len(word) / 3.0) * 5
+    
+    for word, a in target_counts.items():
+        # Skip stopwords and short words
+        if word in stopwords or len(word) <= 2:
+            continue
+            
+        # Skip very infrequent words (appears less than 3 times)
+        if a < 3:
+            continue
+        
+        b = ref_counts.get(word, 0)  # Frequency in reference corpus
+        
+        # Calculate expected frequencies
+        E1 = c * (a + b) / N
+        E2 = d * (a + b) / N
+        
+        # Calculate G² (log-likelihood) score
+        term1 = a * math.log(a / E1) if a > 0 and E1 > 0 else 0
+        term2 = b * math.log(b / E2) if b > 0 and E2 > 0 else 0
+        
+        g2_score = 2 * (term1 + term2)
+        
+        # Only keep words that are overused in target corpus (a > E1)
+        if a > E1:
             keywords.append({
                 'word': word,
-                'freq': count,
-                'keyness': round(keyness_score, 1)
+                'freq': a,
+                'freq_ref': b,
+                'keyness': round(g2_score, 2)
             })
     
-    # Sort by keyness and return top 15
-    keywords.sort(key=lambda x: x['keyness'], reverse=True)
-    return keywords[:15]
+    # Sort by specified criterion
+    reverse = (sort_order == 'desc')
+    if sort_by == 'freq':
+        keywords.sort(key=lambda x: x['freq'], reverse=reverse)
+    else:  # sort by keyness
+        keywords.sort(key=lambda x: x['keyness'], reverse=reverse)
+    
+    # Apply pagination
+    total_keywords = len(keywords)
+    start_idx = max(0, start_rank - 1)
+    end_idx = min(total_keywords, end_rank)
+    paginated_keywords = keywords[start_idx:end_idx]
+    
+    # Add rank to each keyword
+    for i, kw in enumerate(paginated_keywords):
+        kw['rank'] = start_idx + i + 1
+    
+    return {
+        'keywords': paginated_keywords,
+        'total_keywords': total_keywords,
+        'start_rank': start_rank,
+        'end_rank': end_rank,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
+        'has_reference_corpus': True,
+        'target_corpus_size': c,
+        'reference_corpus_size': d
+    }
 
 def detect_cultural_insights(text):
     """Detect cultural insights in the text"""
@@ -221,6 +403,18 @@ def detect_cultural_insights(text):
 def index():
     """Render the main page"""
     return render_template('index.html', show_educators_hub=SHOW_EDUCATORS_HUB)
+
+@app.route('/api/publications', methods=['GET'])
+def get_publications():
+    """Get list of publications from publicationList.txt"""
+    try:
+        publications = load_publications()
+        return jsonify({
+            'success': True,
+            'publications': publications
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/corpora', methods=['GET'])
 def get_corpora_list():
@@ -288,8 +482,26 @@ def analyze_text():
         data = request.json
         corpus_id = data.get('corpus_id', 'custom')
         custom_text = data.get('text', '')
+        ref_corpus_id = data.get('ref_corpus_id', None)
+        custom_ref_text = data.get('ref_text', '')
         
-        # Get text
+        # Keywords sorting and pagination parameters
+        keywords_sort_by = data.get('keywords_sort_by', 'keyness')  # 'keyness' or 'freq'
+        keywords_sort_order = data.get('keywords_sort_order', 'desc')  # 'desc' or 'asc'
+        keywords_start_rank = data.get('keywords_start_rank', 1)
+        keywords_end_rank = data.get('keywords_end_rank', 100)
+        
+        # Validate sorting parameters
+        if keywords_sort_by not in ['keyness', 'freq']:
+            keywords_sort_by = 'keyness'
+        if keywords_sort_order not in ['desc', 'asc']:
+            keywords_sort_order = 'desc'
+        
+        # Validate and limit rank ranges (max 500 keywords per request)
+        keywords_start_rank = max(1, int(keywords_start_rank))
+        keywords_end_rank = min(int(keywords_end_rank), keywords_start_rank + 499)
+        
+        # Get target text
         if corpus_id == 'custom' or corpus_id == 'upload':
             # For custom or uploaded text, use the provided text
             text = custom_text
@@ -302,18 +514,122 @@ def analyze_text():
         if not text.strip():
             return jsonify({'error': 'No text provided'}), 400
         
+        # Get reference corpus (optional)
+        reference_corpus = None
+        if ref_corpus_id:
+            if ref_corpus_id == 'custom' or ref_corpus_id == 'upload':
+                # Use provided reference text
+                reference_corpus = custom_ref_text
+            else:
+                # Load reference corpus from file
+                reference_corpus = get_corpus_text(ref_corpus_id)
+                if reference_corpus is None:
+                    return jsonify({'error': f'Reference corpus "{ref_corpus_id}" not found'}), 404
+        elif custom_ref_text:
+            # If no ref_corpus_id but ref_text is provided, use it
+            reference_corpus = custom_ref_text
+        
         # Perform analysis
         tokens = tokenize_text(text)
         freq = get_word_frequencies(tokens)
+        
+        # Calculate keywords with sorting and pagination
+        keywords_result = calculate_keyness(
+            text, 
+            reference_corpus,
+            sort_by=keywords_sort_by,
+            sort_order=keywords_sort_order,
+            start_rank=keywords_start_rank,
+            end_rank=keywords_end_rank
+        )
         
         return jsonify({
             'success': True,
             'word_count': len(tokens),
             'unique_words': len(freq),
             'wordlist': [{'word': w, 'freq': f} for w, f in freq.most_common(50)],
-            'keywords': calculate_keyness(text),
+            'keywords': keywords_result['keywords'],  # Extract just the array for backward compatibility
+            'keywords_metadata': {  # Add metadata separately
+                'total_keywords': keywords_result['total_keywords'],
+                'start_rank': keywords_result['start_rank'],
+                'end_rank': keywords_result['end_rank'],
+                'sort_by': keywords_result['sort_by'],
+                'sort_order': keywords_result['sort_order'],
+                'has_reference_corpus': keywords_result.get('has_reference_corpus', False),
+                'target_corpus_size': keywords_result.get('target_corpus_size', 0),
+                'reference_corpus_size': keywords_result.get('reference_corpus_size', 0)
+            },
             'ngrams': [{'ngram': ng, 'freq': f} for ng, f in extract_ngrams(tokens)],
             'cultural_insights': detect_cultural_insights(text)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/keywords', methods=['POST'])
+def get_keywords():
+    """
+    Dedicated endpoint for fetching keywords with sorting and pagination.
+    This allows users to change sorting/pagination without re-running the entire analysis.
+    """
+    try:
+        data = request.json
+        corpus_id = data.get('corpus_id', 'custom')
+        custom_text = data.get('text', '')
+        ref_corpus_id = data.get('ref_corpus_id', None)
+        custom_ref_text = data.get('ref_text', '')
+        
+        # Keywords sorting and pagination parameters
+        sort_by = data.get('sort_by', 'keyness')  # 'keyness' or 'freq'
+        sort_order = data.get('sort_order', 'desc')  # 'desc' or 'asc'
+        start_rank = data.get('start_rank', 1)
+        end_rank = data.get('end_rank', 100)
+        
+        # Validate sorting parameters
+        if sort_by not in ['keyness', 'freq']:
+            sort_by = 'keyness'
+        if sort_order not in ['desc', 'asc']:
+            sort_order = 'desc'
+        
+        # Validate and limit rank ranges (max 500 keywords per request)
+        start_rank = max(1, int(start_rank))
+        end_rank = min(int(end_rank), start_rank + 499)
+        
+        # Get target text
+        if corpus_id == 'custom' or corpus_id == 'upload':
+            text = custom_text
+        else:
+            text = get_corpus_text(corpus_id)
+            if text is None:
+                return jsonify({'error': f'Corpus "{corpus_id}" not found'}), 404
+        
+        if not text.strip():
+            return jsonify({'error': 'No text provided'}), 400
+        
+        # Get reference corpus (optional)
+        reference_corpus = None
+        if ref_corpus_id:
+            if ref_corpus_id == 'custom' or ref_corpus_id == 'upload':
+                reference_corpus = custom_ref_text
+            else:
+                reference_corpus = get_corpus_text(ref_corpus_id)
+                if reference_corpus is None:
+                    return jsonify({'error': f'Reference corpus "{ref_corpus_id}" not found'}), 404
+        elif custom_ref_text:
+            reference_corpus = custom_ref_text
+        
+        # Calculate keywords with sorting and pagination
+        keywords_result = calculate_keyness(
+            text, 
+            reference_corpus,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            start_rank=start_rank,
+            end_rank=end_rank
+        )
+        
+        return jsonify({
+            'success': True,
+            'keywords': keywords_result
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500

@@ -243,7 +243,7 @@
                                         <p class="text-gray-500">Enter a search term in the box above the results to view concordance lines.</p>
                                     </div>
                                     <div id="keywords" class="analysis-tab-content" style="display:none;">
-                                         <p class="text-gray-500">Keywords are words that appear significantly more often in your selected text compared to our reference corpus of contemporary North American novels. Results will show here after analysis.</p>
+                                         <p class="text-gray-500">Keywords are words that occur with a significantly higher frequency in your selected text when compared to a reference corpus. If no reference corpus is uploaded, this analysis will yield no results.</p>
                                     </div>
                                     <div id="collocates" class="analysis-tab-content" style="display:none;">
                                          <p class="text-gray-500">Enter a search term in the box above the results to find its collocates (words that frequently appear nearby).</p>
@@ -356,10 +356,8 @@
                 <!-- Publications -->
                 <div id="research-publications" class="mb-16">
                     <h2 class="text-3xl font-bold text-center mb-8">Publications</h2>
-                     <div class="bg-white p-8 rounded-lg shadow-xl space-y-4">
-                        <p><strong>Ma, Q., Su, X., Erni, J. N., & Xu, Z. (2025).</strong> Exploring transcultural translanguaging strategies in English literature of a bilingual Chinese author: a corpus-based study. <em>Asian Englishes</em>, 1-21.</p>
-                        <p><strong>Ma, Q., & Su, X. (2025).</strong> Cultural Metaphors in English Literature by Bilingual Chinese Author: A Corpus-based Study. [Manuscript under review].</p>
-                        <p><strong>Ma, Q., & Su, X. (2025).</strong> Linguistic Innovations in Transcultural Literature by a Chinese Author: A Corpus Linguistics Perspective. [Book chapter, under review].</p>
+                     <div id="publications-container" class="bg-white p-8 rounded-lg shadow-xl space-y-6">
+                        <p class="text-center text-gray-500">Loading publications...</p>
                     </div>
                 </div>
 
@@ -486,35 +484,46 @@
                 <div class="max-w-4xl mx-auto space-y-8">
                     <!-- News Item -->
                     <div class="bg-white p-6 rounded-lg shadow-md flex items-start space-x-6">
-                         <div class="w-24 text-center">
-                            <div class="text-lg font-bold text-blue-600">JUL</div>
-                            <div class="text-4xl font-bold text-gray-800">2025</div>
-                         </div>
-                         <div class="flex-1">
-                            <h2 class="text-xl font-bold mb-2">Conference Presentation: The 9th HAAL Conference 2025</h2>
-                            <p class="text-gray-600">Our team will present the paper "A Corpus-Based Approach for Investigating Cultural Metaphors in Bilingual English Literature and its implications for English Language Education" at the Hong Kong Association for Applied Linguistics (HAAL) conference.</p>
-                         </div>
-                    </div>
-                    <!-- News Item -->
-                     <div class="bg-white p-6 rounded-lg shadow-md flex items-start space-x-6">
-                         <div class="w-24 text-center">
-                            <div class="text-lg font-bold text-blue-600">MAY</div>
-                            <div class="text-4xl font-bold text-gray-800">2025</div>
-                         </div>
-                         <div class="flex-1">
-                            <h2 class="text-xl font-bold mb-2">Paper Submission: Cultural Metaphors</h2>
-                            <p class="text-gray-600">Our manuscript, "Cultural Metaphors in English Literature by Bilingual Chinese Author: A Corpus-based Study," has been finalized and submitted for peer review. We look forward to sharing the published work soon.</p>
-                         </div>
-                    </div>
-                     <!-- News Item -->
-                     <div class="bg-white p-6 rounded-lg shadow-md flex items-start space-x-6">
-                         <div class="w-24 text-center">
+                         <div class="w-24 text-center flex-shrink-0">
                             <div class="text-lg font-bold text-blue-600">JAN</div>
                             <div class="text-4xl font-bold text-gray-800">2025</div>
                          </div>
                          <div class="flex-1">
-                            <h2 class="text-xl font-bold mb-2">Paper Accepted in 'Asian Englishes'</h2>
-                            <p class="text-gray-600">We are thrilled to announce that our paper, "Exploring transcultural translanguaging strategies in English literature of a bilingual Chinese author: a corpus-based study," has been accepted for publication. Thank you to the reviewers and editors for their valuable feedback.</p>
+                            <h2 class="text-xl font-bold mb-2">Journal Article Published</h2>
+                            <p class="text-gray-600">Ma, Q., Su, X., Erni, J. N., & Xu, Z. (2025). <strong>Exploring transcultural translanguaging strategies in English literature of a bilingual Chinese author: a corpus-based study</strong>. <em>Asian Englishes</em>, 1-21.</p>
+                         </div>
+                    </div>
+                    <!-- News Item -->
+                    <div class="bg-white p-6 rounded-lg shadow-md flex items-start space-x-6">
+                         <div class="w-24 text-center flex-shrink-0">
+                            <div class="text-lg font-bold text-blue-600">FEB</div>
+                            <div class="text-4xl font-bold text-gray-800">2025</div>
+                         </div>
+                         <div class="flex-1">
+                            <h2 class="text-xl font-bold mb-2">Book Chapter Published</h2>
+                            <p class="text-gray-600">Ma, Q., & Su, X. (2025). <strong>“Showdown Looming in the Forbidden City—” A Corpus-based Study of Translanguaging Strategies Use by a Bilingual Chinese Author of English Fiction</strong>. In W. Lixun, M. Qing, & Z. Di (Eds.), <em>Technology-Enhanced and Corpus Based Language Learning and Teaching: Innovations and Insights</em> (pp. 130-149). Cambridge Scholars Publishing.</p>
+                         </div>
+                    </div>
+                    <!-- News Item -->
+                    <div class="bg-white p-6 rounded-lg shadow-md flex items-start space-x-6">
+                         <div class="w-24 text-center flex-shrink-0">
+                            <div class="text-lg font-bold text-blue-600">JUL</div>
+                            <div class="text-4xl font-bold text-gray-800">2025</div>
+                         </div>
+                         <div class="flex-1">
+                            <h2 class="text-xl font-bold mb-2">Conference Presentation</h2>
+                            <p class="text-gray-600">Ma, Q., & Su, X. (2025). <strong>A Corpus-Based Approach for Investigating Cultural Metaphors in Bilingual English Literature and its implications for English Language Education</strong>. In the 9th HAAL (Hong Kong Association of Applied Linguistics) Conference, in Hong Kong SAR, China.</p>
+                         </div>
+                    </div>
+                    <!-- News Item -->
+                     <div class="bg-white p-6 rounded-lg shadow-md flex items-start space-x-6">
+                         <div class="w-24 text-center flex-shrink-0">
+                            <div class="text-lg font-bold text-blue-600">JUL</div>
+                            <div class="text-4xl font-bold text-gray-800">2024</div>
+                         </div>
+                         <div class="flex-1">
+                            <h2 class="text-xl font-bold mb-2">Conference Presentation & Award</h2>
+                            <p class="text-gray-600">Ma, Q., & Su, X. (2024). <strong>“Showdown looming in the Forbidden City—” A Corpus-based Study of Translanguaging Strategies Use by a Bilingual Chinese Author of English Fiction</strong>. In International Conference on Technology-Enhanced Language Learning and Teaching & Corpus-based Language Learning and Teaching 2024, in Hong Kong SAR, China. <span class="text-blue-600 font-bold">[The Best Paper Award]</span></p>
                          </div>
                     </div>
                 </div>
@@ -588,6 +597,58 @@
             }
         }
         
+        // --- Load publications from publicationList.txt ---
+        async function loadPublications() {
+            try {
+                const response = await fetch('/api/publications');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayPublications(data.publications);
+                }
+            } catch (error) {
+                console.error('Error loading publications:', error);
+                document.getElementById('publications-container').innerHTML = 
+                    '<p class="text-center text-red-500">Error loading publications. Please try again later.</p>';
+            }
+        }
+        
+        // --- Display publications in the page ---
+        function displayPublications(publications) {
+            const container = document.getElementById('publications-container');
+            let html = '';
+            
+            // Define the order and display names for categories
+            const categories = [
+                { key: 'Journal article', display: 'Journal Articles' },
+                { key: 'Conference article', display: 'Conference Articles' },
+                { key: 'Book chapter', display: 'Book Chapters' },
+                { key: 'Under review', display: 'Under Review' },
+                { key: 'In preparation', display: 'In Preparation' }
+            ];
+            
+            categories.forEach(category => {
+                const pubs = publications[category.key];
+                if (pubs && pubs.length > 0) {
+                    html += `<div class="mb-6">`;
+                    html += `<h3 class="text-xl font-semibold mb-3 text-gray-700">${category.display}</h3>`;
+                    html += `<div class="space-y-3">`;
+                    
+                    pubs.forEach(pub => {
+                        html += `<p class="text-gray-800 leading-relaxed">${pub}</p>`;
+                    });
+                    
+                    html += `</div></div>`;
+                }
+            });
+            
+            if (html === '') {
+                html = '<p class="text-center text-gray-500">No publications available.</p>';
+            }
+            
+            container.innerHTML = html;
+        }
+        
         // --- Populate corpus dropdown with loaded corpora ---
         function populateCorpusDropdown() {
             const select = document.getElementById('corpus-select');
@@ -608,7 +669,10 @@
         }
         
         // Load corpora when page loads
-        window.addEventListener('DOMContentLoaded', loadAvailableCorpora);
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAvailableCorpora();
+            loadPublications();
+        });
 
         function showPage(pageId, clickedLink) {
             pages.forEach(page => {
