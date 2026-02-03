@@ -8,10 +8,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* Tailwind gray-50 */
+            background: linear-gradient(135deg, #f8fafc 0%, #e8f4f8 100%);
         }
         .nav-link {
             position: relative;
@@ -39,25 +41,96 @@
         }
         .card-hover {
             transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .card-hover::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+            transition: left 0.5s;
+        }
+        .card-hover:hover::before {
+            left: 100%;
         }
         .card-hover:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .icon-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .decorative-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 1rem;
+            padding: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body class="text-gray-800">
 
     <!-- Header & Navigation -->
-    <header class="bg-white shadow-md sticky top-0 z-50">
+    <header class="bg-white shadow-lg sticky top-0 z-50" style="box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
         <div class="container mx-auto px-6 py-4">
             <div class="flex items-center justify-between">
                 <div class="text-2xl font-bold text-gray-800">
-                    <a href="#" class="flex items-center space-x-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v11.494m-5.22-6.22l10.44 0M3.75 9.375h16.5M3.75 14.625h16.5M5.25 18.375h13.5M5.25 5.625h13.5" />
-                        </svg>
-                        <span>Digital Gateway to Asian Literature</span>
+                    <a href="#" class="flex items-center space-x-3 group">
+                        <div class="relative">
+                            <div class="absolute inset-0 bg-blue-500 rounded-lg blur opacity-25 group-hover:opacity-50 transition"></div>
+                            <div class="relative bg-gradient-to-br from-blue-500 to-blue-600 p-2 rounded-lg">
+                                <i class="fas fa-book-open text-white text-2xl"></i>
+                            </div>
+                        </div>
+                        <span class="group-hover:text-blue-600 transition">Digital Gateway to Asian Literature</span>
                     </a>
                 </div>
                 <nav class="hidden md:flex items-center space-x-8">
@@ -105,14 +178,31 @@
         <!-- Home Section -->
         <section id="home" class="page-section active">
             <!-- Hero Section -->
-            <div class="bg-blue-50">
-                <div class="container mx-auto px-6 py-20 text-center">
-                    <h1 class="text-4xl md:text-6xl font-bold text-gray-800 leading-tight">Unlocking the Richness of Asian Literature in English</h1>
-                    <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">An innovative, user-friendly public portal for the corpora and research findings generated by the "Asian Literature in English" project. Explore advanced search and analysis functionalities to conduct your own linguistic and literary investigations.</p>
-                    <div class="mt-8">
+            <div class="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
+                <!-- Decorative elements -->
+                <div class="decorative-blob absolute top-20 left-10 w-72 h-72 bg-blue-300"></div>
+                <div class="decorative-blob absolute bottom-20 right-10 w-96 h-96 bg-purple-300"></div>
+                <div class="decorative-blob absolute top-1/2 left-1/2 w-64 h-64 bg-indigo-300"></div>
+                
+                <div class="container mx-auto px-6 py-20 text-center relative z-10">
+                    <div class="floating mb-6">
+                        <i class="fas fa-globe-asia text-6xl text-blue-500 mb-4"></i>
+                    </div>
+                    <h1 class="text-4xl md:text-6xl font-bold leading-tight">
+                        <span class="gradient-text">Unlocking the Richness</span><br>
+                        <span class="text-gray-800">of Asian Literature in English</span>
+                    </h1>
+                    <p class="mt-6 text-lg text-gray-600 max-w-3xl mx-auto">
+                        <i class="fas fa-sparkles text-yellow-500 mr-2"></i>
+                        An innovative, user-friendly public portal for the corpora and research findings generated by the "Asian Literature in English" project. Explore advanced search and analysis functionalities to conduct your own linguistic and literary investigations.
+                    </p>
+                    <div class="mt-10">
                         <div class="relative max-w-xl mx-auto">
-                            <input type="text" id="homepage-search-input" placeholder="Search the corpus for a word or phrase..." class="w-full py-3 px-5 text-lg border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" onkeypress="if(event.key==='Enter') homepageSearch()">
-                            <button onclick="homepageSearch()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-500 text-white py-2 px-6 rounded-full font-semibold hover:bg-blue-600 transition duration-300">Search</button>
+                            <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+                            <input type="text" id="homepage-search-input" placeholder="Search the corpus for a word or phrase..." class="w-full py-4 pl-12 pr-32 text-lg border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg" onkeypress="if(event.key==='Enter') homepageSearch()">
+                            <button onclick="homepageSearch()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-6 rounded-full font-semibold hover:from-blue-600 hover:to-blue-700 transition duration-300 shadow-md">
+                                <i class="fas fa-search mr-2"></i>Search
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -120,36 +210,76 @@
 
             <!-- Featured Research -->
             <div class="container mx-auto px-6 py-16">
-                <h2 class="text-3xl font-bold text-center mb-12">Explore Our Core Research Areas</h2>
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold mb-2">
+                        <i class="fas fa-microscope text-blue-500 mr-3"></i>
+                        Explore Our Core Research Areas
+                    </h2>
+                    <p class="text-gray-600">Discover the innovative linguistic research powering our platform</p>
+                </div>
                 <div class="grid md:grid-cols-3 gap-8">
                     <!-- Linguistic Innovations -->
-                    <div class="bg-white p-8 rounded-lg shadow-lg card-hover">
-                        <h3 class="text-2xl font-bold mb-4">Linguistic Innovations</h3>
+                    <div class="bg-white p-8 rounded-xl shadow-lg card-hover border-t-4 border-blue-500">
+                        <div class="icon-circle">
+                            <i class="fas fa-lightbulb text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 flex items-center">
+                            Linguistic Innovations
+                        </h3>
                         <p class="text-gray-600 mb-4">Discover how bilingual authors creatively adapt English, introducing novel lexical, semantic, and phrasal forms. See examples like direct borrowings ('shuanggui'), transliterations ('Dragon Well tea'), and creative proverbs.</p>
-                        <a href="#research" onclick="showPage('research', document.querySelector('a[href=\'#research\']'));" class="font-semibold text-blue-500 hover:text-blue-600">Learn More &rarr;</a>
+                        <a href="#research" onclick="showPage('research', document.querySelector('a[href=\'#research\']'));" class="inline-flex items-center font-semibold text-blue-500 hover:text-blue-600 transition">
+                            Learn More <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
                     </div>
                     <!-- Cultural Metaphors -->
-                    <div class="bg-white p-8 rounded-lg shadow-lg card-hover">
-                        <h3 class="text-2xl font-bold mb-4">Cultural Metaphors</h3>
+                    <div class="bg-white p-8 rounded-xl shadow-lg card-hover border-t-4 border-purple-500">
+                        <div class="icon-circle" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                            <i class="fas fa-yin-yang text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 flex items-center">
+                            Cultural Metaphors
+                        </h3>
                         <p class="text-gray-600 mb-4">Explore how culturally-specific metaphors serve as powerful rhetorical and cognitive devices. Uncover the meaning behind expressions like "Falling leaves return to their roots" and "Fish swimming in a cauldron".</p>
-                        <a href="#research" onclick="showPage('research', document.querySelector('a[href=\'#research\']'));" class="font-semibold text-blue-500 hover:text-blue-600">Learn More &rarr;</a>
+                        <a href="#research" onclick="showPage('research', document.querySelector('a[href=\'#research\']'));" class="inline-flex items-center font-semibold text-purple-500 hover:text-purple-600 transition">
+                            Learn More <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
                     </div>
                     <!-- Translanguaging Strategies -->
-                    <div class="bg-white p-8 rounded-lg shadow-lg card-hover">
-                        <h3 class="text-2xl font-bold mb-4">Translanguaging Strategies</h3>
+                    <div class="bg-white p-8 rounded-xl shadow-lg card-hover border-t-4 border-green-500">
+                        <div class="icon-circle" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                            <i class="fas fa-language text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 flex items-center">
+                            Translanguaging Strategies
+                        </h3>
                         <p class="text-gray-600 mb-4">Investigate the deliberate strategies authors use to weave cultural elements into their narratives, categorized into themes of 'Place', 'Classic Literature', 'History', 'Specialty', and 'Social Politics'.</p>
-                        <a href="#research" onclick="showPage('research', document.querySelector('a[href=\'#research\']'));" class="font-semibold text-blue-500 hover:text-blue-600">Learn More &rarr;</a>
+                        <a href="#research" onclick="showPage('research', document.querySelector('a[href=\'#research\']'));" class="inline-flex items-center font-semibold text-green-500 hover:text-green-600 transition">
+                            Learn More <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
                     </div>
                 </div>
             </div>
             
              <!-- About the Project -->
-            <div class="bg-white">
+            <div class="bg-gradient-to-r from-white to-blue-50">
                 <div class="container mx-auto px-6 py-16">
                      <div class="text-center">
-                        <h2 class="text-3xl font-bold">About the Project</h2>
-                        <p class="mt-4 text-lg text-gray-600 max-w-4xl mx-auto">"Asian literature in English: Creativity, translanguaging, and language education" is a comprehensive research initiative aimed at developing a diverse corpus of literary works by bilingual Asian writers, tracing linguistic innovations, and generating educational resources to highlight the unique contributions of Asian writers to world literature.</p>
-                        <a href="#research-about" onclick="showPage('research', document.querySelector('a[href=\'#research\']')); document.getElementById('research-about').scrollIntoView();" class="mt-6 inline-block bg-blue-500 text-white py-3 px-8 rounded-full font-semibold hover:bg-blue-600 transition duration-300">Meet the Team & See Our Aims</a>
+                        <div class="inline-block mb-6">
+                            <div class="flex items-center justify-center space-x-3 bg-blue-100 px-6 py-3 rounded-full">
+                                <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+                                <span class="text-blue-800 font-semibold">About the Project</span>
+                            </div>
+                        </div>
+                        <h2 class="text-3xl font-bold mb-6">
+                            <i class="fas fa-project-diagram text-blue-500 mr-3"></i>
+                            Our Research Initiative
+                        </h2>
+                        <p class="mt-4 text-lg text-gray-600 max-w-4xl mx-auto leading-relaxed">"Asian literature in English: Creativity, translanguaging, and language education" is a comprehensive research initiative aimed at developing a diverse corpus of literary works by bilingual Asian writers, tracing linguistic innovations, and generating educational resources to highlight the unique contributions of Asian writers to world literature.</p>
+                        <a href="#research-about" onclick="showPage('research', document.querySelector('a[href=\'#research\']')); document.getElementById('research-about').scrollIntoView();" class="mt-8 inline-flex items-center bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-8 rounded-full font-semibold hover:from-blue-600 hover:to-blue-700 transition duration-300 shadow-lg hover:shadow-xl">
+                            <i class="fas fa-users mr-2"></i>
+                            Meet the Team & See Our Aims
+                            <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
                      </div>
                 </div>
             </div>
@@ -158,20 +288,40 @@
         <!-- Explore the Gateway Section -->
         <section id="gateway" class="page-section">
             <div class="container mx-auto px-6 py-16">
-                <h1 class="text-4xl font-bold text-center mb-4">Corpus Analysis Suite</h1>
-                <p class="text-lg text-gray-600 text-center max-w-3xl mx-auto mb-12">An interactive tool inspired by professional software like AntConc and Sketch Engine. Analyze texts from our curated corpora, or paste your own, to uncover linguistic patterns and cultural insights.</p>
+                <div class="text-center mb-12">
+                    <div class="inline-block mb-4">
+                        <div class="flex items-center justify-center space-x-3 bg-gradient-to-r from-blue-100 to-purple-100 px-6 py-3 rounded-full">
+                            <i class="fas fa-rocket text-blue-600 text-xl"></i>
+                            <span class="font-semibold gradient-text">Explore the Gateway</span>
+                        </div>
+                    </div>
+                    <h1 class="text-4xl font-bold mb-4">
+                        <i class="fas fa-chart-line text-blue-500 mr-3"></i>
+                        Corpus Analysis & Metaphor Discovery
+                    </h1>
+                    <p class="text-lg text-gray-600 max-w-3xl mx-auto mb-6 leading-relaxed">
+                        <i class="fas fa-book-reader text-purple-500 mr-2"></i>
+                        Analyze our curated Asian literary corpora to explore word patterns, cultural metaphors, and translanguaging strategies based on our research findings—or upload your own texts to uncover cultural insights and discover potential metaphorical expressions.
+                    </p>
+                </div>
 
-                <div class="bg-white p-8 rounded-lg shadow-xl">
+                <div class="bg-white p-8 rounded-xl shadow-2xl border-t-4 border-blue-500">
                     <!-- Corpus Input & Controls -->
                     <div class="mb-8">
-                        <h2 class="text-2xl font-bold mb-4">1. Select Your Corpus</h2>
+                        <h2 class="text-2xl font-bold mb-4 flex items-center">
+                            <span class="flex items-center justify-center w-10 h-10 bg-blue-500 text-white rounded-full mr-3 text-lg">1</span>
+                            <i class="fas fa-folder-open text-blue-500 mr-2"></i>
+                            Select Your Corpus
+                        </h2>
                         <div class="flex flex-col md:flex-row gap-4 mb-4">
                             <select id="corpus-select" class="flex-grow p-3 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="custom">Paste Custom Text</option>
                                 <option value="upload">Upload Text File (.txt)</option>
                                 <!-- Corpus options will be loaded dynamically -->
                             </select>
-                            <button class="bg-blue-600 text-white py-3 px-8 rounded-md font-semibold hover:bg-blue-700 transition" onclick="runFullAnalysis()">Analyze Text</button>
+                            <button class="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-8 rounded-md font-semibold hover:from-blue-700 hover:to-blue-800 transition shadow-lg hover:shadow-xl" onclick="runFullAnalysis()">
+                                <i class="fas fa-magic mr-2"></i>Analyze Text
+                            </button>
                         </div>
                         
                         <!-- File Upload Section (hidden by default) -->
@@ -222,18 +372,32 @@
 
                     <!-- Analysis Results -->
                     <div>
-                        <h2 class="text-2xl font-bold mb-4">2. Explore Analysis</h2>
+                        <h2 class="text-2xl font-bold mb-4 flex items-center">
+                            <span class="flex items-center justify-center w-10 h-10 bg-purple-500 text-white rounded-full mr-3 text-lg">2</span>
+                            <i class="fas fa-search-plus text-purple-500 mr-2"></i>
+                            Explore Analysis
+                        </h2>
                         <div class="grid lg:grid-cols-3 gap-8">
                             <!-- Main Analysis Tabs -->
                             <div class="lg:col-span-2">
                                 <!-- Tabs -->
                                 <div class="border-b border-gray-200">
                                     <nav class="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
-                                        <button onclick="openAnalysisTab(event, 'concordance')" class="analysis-tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base border-blue-500 text-blue-600">Concordance</button>
-                                        <button onclick="openAnalysisTab(event, 'keywords')" class="analysis-tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Keywords</button>
-                                        <button onclick="openAnalysisTab(event, 'collocates')" class="analysis-tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Collocates</button>
-                                        <button onclick="openAnalysisTab(event, 'wordlist')" class="analysis-tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Word List</button>
-                                        <button onclick="openAnalysisTab(event, 'ngrams')" class="analysis-tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">N-Grams</button>
+                                        <button onclick="openAnalysisTab(event, 'concordance')" class="analysis-tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base border-blue-500 text-blue-600">
+                                            <i class="fas fa-align-left mr-2"></i>Concordance
+                                        </button>
+                                        <button onclick="openAnalysisTab(event, 'keywords')" class="analysis-tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                                            <i class="fas fa-key mr-2"></i>Keywords
+                                        </button>
+                                        <button onclick="openAnalysisTab(event, 'collocates')" class="analysis-tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                                            <i class="fas fa-link mr-2"></i>Collocates
+                                        </button>
+                                        <button onclick="openAnalysisTab(event, 'wordlist')" class="analysis-tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                                            <i class="fas fa-list-ul mr-2"></i>Word List
+                                        </button>
+                                        <button onclick="openAnalysisTab(event, 'ngrams')" class="analysis-tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-base border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                                            <i class="fas fa-cubes mr-2"></i>N-Grams
+                                        </button>
                                     </nav>
                                 </div>
 
@@ -281,10 +445,10 @@
                                 <div id="cultural-insights-card" class="bg-blue-50 border-2 border-dashed border-blue-200 p-6 rounded-lg h-full">
                                     <h3 class="text-xl font-bold text-blue-800 mb-3 flex items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7.014A8.003 8.003 0 0117.657 18.657z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1014.12 11.88l-4.242 4.242z" /></svg>
-                                        Cultural Insights
+                                        Potential Metaphorical Patterns Extraction
                                     </h3>
                                     <div id="cultural-insights-content">
-                                        <p class="text-gray-600">Our system will automatically highlight significant cultural metaphors, linguistic innovations, and translanguaging strategies from your text here.</p>
+                                        <p class="text-gray-600">Upload or paste your text, then click "Analyze Text" to extract potential metaphorical patterns in the texts. Or you can use our default corpus to discover our findings.</p>
                                     </div>
                                 </div>
                             </div>
@@ -297,20 +461,40 @@
         <!-- Our Research Section -->
         <section id="research" class="page-section">
             <div class="container mx-auto px-6 py-16">
-                <h1 class="text-4xl font-bold text-center mb-12">Our Research</h1>
+                <div class="text-center mb-12">
+                    <div class="inline-block mb-4">
+                        <div class="flex items-center justify-center space-x-3 bg-gradient-to-r from-purple-100 to-pink-100 px-6 py-3 rounded-full">
+                            <i class="fas fa-flask text-purple-600 text-xl"></i>
+                            <span class="font-semibold gradient-text">Our Research</span>
+                        </div>
+                    </div>
+                    <h1 class="text-4xl font-bold">
+                        <i class="fas fa-graduation-cap text-purple-500 mr-3"></i>
+                        Research Findings & Explorations
+                    </h1>
+                </div>
 
                 <!-- Interactive Explorers -->
                 <div id="research-explorers" class="mb-16">
-                    <h2 class="text-3xl font-bold text-center mb-8">Interactive Research Explorers</h2>
+                    <h2 class="text-3xl font-bold text-center mb-4">
+                        <i class="fas fa-laptop-code text-blue-500 mr-3"></i>
+                        Interactive Research Explorers
+                    </h2>
                     <p class="text-lg text-gray-600 text-center max-w-3xl mx-auto mb-10">Engage directly with our findings through these interactive modules. Each explorer provides a hands-on way to understand the key concepts of our research.</p>
                     
-                    <div class="bg-white p-8 rounded-lg shadow-xl">
+                    <div class="bg-white p-8 rounded-xl shadow-2xl border-t-4 border-purple-500">
                         <!-- Tabs -->
                         <div class="border-b border-gray-200 mb-6">
                             <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                                <button onclick="openTab(event, 'explorer-metaphor')" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg border-blue-500 text-blue-600">Cultural Metaphors</button>
-                                <button onclick="openTab(event, 'explorer-innovation')" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Linguistic Innovations</button>
-                                <button onclick="openTab(event, 'explorer-translang')" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Translanguaging Strategies</button>
+                                <button onclick="openTab(event, 'explorer-metaphor')" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg border-blue-500 text-blue-600">
+                                    <i class="fas fa-yin-yang mr-2"></i>Cultural Metaphors
+                                </button>
+                                <button onclick="openTab(event, 'explorer-innovation')" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                                    <i class="fas fa-lightbulb mr-2"></i>Linguistic Innovations
+                                </button>
+                                <button onclick="openTab(event, 'explorer-translang')" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                                    <i class="fas fa-language mr-2"></i>Translanguaging Strategies
+                                </button>
                             </nav>
                         </div>
 
@@ -355,17 +539,36 @@
 
                 <!-- Publications -->
                 <div id="research-publications" class="mb-16">
-                    <h2 class="text-3xl font-bold text-center mb-8">Publications</h2>
-                     <div id="publications-container" class="bg-white p-8 rounded-lg shadow-xl space-y-6">
-                        <p class="text-center text-gray-500">Loading publications...</p>
+                    <h2 class="text-3xl font-bold text-center mb-4">
+                        <i class="fas fa-file-alt text-blue-500 mr-3"></i>
+                        Publications
+                    </h2>
+                    <p class="text-center text-gray-600 mb-8">
+                        <i class="fas fa-bookmark text-purple-500 mr-2"></i>
+                        Our latest research findings and scholarly contributions
+                    </p>
+                     <div id="publications-container" class="bg-white p-8 rounded-xl shadow-2xl border-t-4 border-green-500 space-y-6">
+                        <p class="text-center text-gray-500">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Loading publications...
+                        </p>
                     </div>
                 </div>
 
                 <!-- About the Project & Team -->
                 <div id="research-about">
-                    <h2 class="text-3xl font-bold text-center mb-8">About the Project & Team</h2>
-                     <div class="bg-white p-8 rounded-lg shadow-xl">
-                        <h3 class="text-2xl font-semibold mb-4">Initiative Aims</h3>
+                    <h2 class="text-3xl font-bold text-center mb-4">
+                        <i class="fas fa-users-cog text-blue-500 mr-3"></i>
+                        About the Project & Team
+                    </h2>
+                    <p class="text-center text-gray-600 mb-8">
+                        <i class="fas fa-bullseye text-green-500 mr-2"></i>
+                        Meet the team driving innovation in Asian literature research
+                    </p>
+                     <div class="bg-white p-8 rounded-xl shadow-2xl border-t-4 border-indigo-500">
+                        <h3 class="text-2xl font-semibold mb-4 flex items-center">
+                            <i class="fas fa-bullseye text-indigo-500 mr-3"></i>
+                            Initiative Aims
+                        </h3>
                         <ul class="list-disc list-inside space-y-3 text-gray-700">
                              <li>Develop a diverse range of corpora of literary works in English from bilingual Asian writers.</li>
                              <li>Design an innovative and user-friendly website with sophisticated search and analysis functionalities.</li>
@@ -374,7 +577,10 @@
                              <li>Generate educational resources from Asian literary works in English to inform language education globally.</li>
                         </ul>
 
-                        <h3 class="text-2xl font-semibold mt-8 mb-4">Our Team</h3>
+                        <h3 class="text-2xl font-semibold mt-8 mb-4 flex items-center">
+                            <i class="fas fa-user-friends text-blue-500 mr-3"></i>
+                            Our Team
+                        </h3>
                         <div class="space-y-4">
                             <div>
                                 <h4 class="font-bold">Principal Project Supervisor</h4>
@@ -390,7 +596,10 @@
                             </div>
                         </div>
                          
-                        <h3 class="text-2xl font-semibold mt-8 mb-4">Future Direction: AI Integration</h3>
+                        <h3 class="text-2xl font-semibold mt-8 mb-4 flex items-center">
+                            <i class="fas fa-robot text-purple-500 mr-3"></i>
+                            Future Direction: AI Integration
+                        </h3>
                         <p class="text-gray-700">As outlined in our research proposals, we are actively developing a Human-AI collaborative approach to enhance the detection and analysis of cultural metaphors. Future versions of this website will integrate a custom AI chatbot, trained on our corpora and research, to provide users with real-time, intelligent analytical assistance.</p>
                     </div>
                 </div>
@@ -401,43 +610,84 @@
         <!-- Educator's Hub Section -->
         <section id="educators" class="page-section">
             <div class="container mx-auto px-6 py-16">
-                <h1 class="text-4xl font-bold text-center mb-4">Educator's Hub</h1>
-                <p class="text-lg text-gray-600 text-center max-w-3xl mx-auto mb-12">Downloadable resources designed to bring Asian literature in English into the classroom. All materials are derived from our research and are suitable for various educational levels.</p>
+                <div class="text-center mb-12">
+                    <div class="inline-block mb-4">
+                        <div class="flex items-center justify-center space-x-3 bg-gradient-to-r from-green-100 to-teal-100 px-6 py-3 rounded-full">
+                            <i class="fas fa-chalkboard-teacher text-green-600 text-xl"></i>
+                            <span class="font-semibold" style="background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Educator's Hub</span>
+                        </div>
+                    </div>
+                    <h1 class="text-4xl font-bold mb-4">
+                        <i class="fas fa-graduation-cap text-green-500 mr-3"></i>
+                        Educator's Hub
+                    </h1>
+                    <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                        <i class="fas fa-book-reader text-teal-500 mr-2"></i>
+                        Downloadable resources designed to bring Asian literature in English into the classroom. All materials are derived from our research and are suitable for various educational levels.
+                    </p>
+                </div>
                 
-                <div class="bg-white p-8 rounded-lg shadow-xl">
-                    <h2 class="text-2xl font-bold mb-6">Resource Library</h2>
+                <div class="bg-white p-8 rounded-xl shadow-2xl border-t-4 border-green-500">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center">
+                        <i class="fas fa-folder-open text-green-500 mr-3"></i>
+                        Resource Library
+                    </h2>
 
                     <div class="space-y-6">
                         <!-- Resource Item -->
-                        <div class="flex items-center justify-between p-4 border rounded-md">
-                            <div>
-                                <h3 class="font-bold text-lg">Lesson Plan: Understanding Cultural Metaphors</h3>
-                                <p class="text-gray-600 text-sm">A 90-minute lesson for secondary students using excerpts from "Falling Leaves".</p>
+                        <div class="flex items-center justify-between p-6 border-2 border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition card-hover bg-gradient-to-r from-white to-blue-50">
+                            <div class="flex items-start space-x-4">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-file-pdf text-red-500 text-3xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg flex items-center">
+                                        <i class="fas fa-chalkboard mr-2 text-blue-500"></i>
+                                        Lesson Plan: Understanding Cultural Metaphors
+                                    </h3>
+                                    <p class="text-gray-600 text-sm mt-1">A 90-minute lesson for secondary students using excerpts from "Falling Leaves".</p>
+                                </div>
                             </div>
-                            <a href="{{ url_for('static', filename='resources/Lesson-Plan-Cultural-Metaphors.pdf') }}" download class="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                            <a href="{{ url_for('static', filename='resources/Lesson-Plan-Cultural-Metaphors.pdf') }}" download class="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition shadow-md hover:shadow-lg flex-shrink-0">
+                                <i class="fas fa-download"></i>
                                 <span>Download</span>
                             </a>
                         </div>
                          <!-- Resource Item -->
-                        <div class="flex items-center justify-between p-4 border rounded-md">
-                            <div>
-                                <h3 class="font-bold text-lg">Activity: Identifying Linguistic Innovations</h3>
-                                <p class="text-gray-600 text-sm">A worksheet for tertiary students to identify and categorize innovations in texts by Qiu Xiaolong.</p>
+                        <div class="flex items-center justify-between p-6 border-2 border-gray-200 rounded-lg hover:border-green-300 hover:shadow-md transition card-hover bg-gradient-to-r from-white to-green-50">
+                            <div class="flex items-start space-x-4">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-file-pdf text-red-500 text-3xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg flex items-center">
+                                        <i class="fas fa-tasks mr-2 text-green-500"></i>
+                                        Activity: Identifying Linguistic Innovations
+                                    </h3>
+                                    <p class="text-gray-600 text-sm mt-1">A worksheet for tertiary students to identify and categorize innovations in texts by Qiu Xiaolong.</p>
+                                </div>
                             </div>
-                             <a href="{{ url_for('static', filename='resources/Activity-Linguistic-Innovations.pdf') }}" download class="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                             <a href="{{ url_for('static', filename='resources/Activity-Linguistic-Innovations.pdf') }}" download class="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-5 py-3 rounded-lg hover:from-green-600 hover:to-green-700 transition shadow-md hover:shadow-lg flex-shrink-0">
+                                <i class="fas fa-download"></i>
                                 <span>Download</span>
                             </a>
                         </div>
                          <!-- Resource Item -->
-                        <div class="flex items-center justify-between p-4 border rounded-md">
-                            <div>
-                                <h3 class="font-bold text-lg">Guide: "Text-in-Action" - Translanguaging</h3>
-                                <p class="text-gray-600 text-sm">A teacher's guide on using our corpus to explain translanguaging strategies to students.</p>
+                        <div class="flex items-center justify-between p-6 border-2 border-gray-200 rounded-lg hover:border-purple-300 hover:shadow-md transition card-hover bg-gradient-to-r from-white to-purple-50">
+                            <div class="flex items-start space-x-4">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-file-pdf text-red-500 text-3xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg flex items-center">
+                                        <i class="fas fa-book-open mr-2 text-purple-500"></i>
+                                        Guide: "Text-in-Action" - Translanguaging
+                                    </h3>
+                                    <p class="text-gray-600 text-sm mt-1">A teacher's guide on using our corpus to explain translanguaging strategies to students.</p>
+                                </div>
                             </div>
-                             <a href="{{ url_for('static', filename='resources/Guide-Translanguaging-Strategies.pdf') }}" download class="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                             <a href="{{ url_for('static', filename='resources/Guide-Translanguaging-Strategies.pdf') }}" download class="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white px-5 py-3 rounded-lg hover:from-purple-600 hover:to-purple-700 transition shadow-md hover:shadow-lg flex-shrink-0">
+                                <i class="fas fa-download"></i>
                                 <span>Download</span>
                             </a>
                         </div>
@@ -450,27 +700,50 @@
         <!-- Key Concepts Section -->
         <section id="concepts" class="page-section">
             <div class="container mx-auto px-6 py-16">
-                <h1 class="text-4xl font-bold text-center mb-4">Key Concepts Glossary</h1>
-                <p class="text-lg text-gray-600 text-center max-w-3xl mx-auto mb-12">A quick reference for the core theoretical terms used throughout our research.</p>
+                <div class="text-center mb-12">
+                    <div class="inline-block mb-4">
+                        <div class="flex items-center justify-center space-x-3 bg-gradient-to-r from-yellow-100 to-orange-100 px-6 py-3 rounded-full">
+                            <i class="fas fa-brain text-yellow-600 text-xl"></i>
+                            <span class="font-semibold" style="background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Key Concepts</span>
+                        </div>
+                    </div>
+                    <h1 class="text-4xl font-bold mb-4">
+                        <i class="fas fa-book text-yellow-500 mr-3"></i>
+                        Key Concepts Glossary
+                    </h1>
+                    <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                        <i class="fas fa-lightbulb text-orange-500 mr-2"></i>
+                        A quick reference for the core theoretical terms used throughout our research
+                    </p>
+                </div>
 
-                <div class="bg-white p-8 rounded-lg shadow-xl space-y-6">
-                    <div>
-                        <h2 class="text-xl font-bold">Corpus Linguistics</h2>
+                <div class="bg-white p-8 rounded-xl shadow-2xl border-t-4 border-yellow-500 space-y-6">
+                    <div class="p-6 bg-gradient-to-r from-blue-50 to-white rounded-lg border-l-4 border-blue-500">
+                        <h2 class="text-xl font-bold flex items-center mb-3">
+                            <i class="fas fa-database text-blue-500 mr-3"></i>
+                            Corpus Linguistics
+                        </h2>
                         <p class="text-gray-700">The study of language as expressed in corpora (samples) of "real world" text. This approach uses computational tools to systematically analyze large amounts of linguistic data for patterns and frequencies.</p>
                     </div>
-                     <hr>
-                    <div>
-                        <h2 class="text-xl font-bold">Cultural Metaphor</h2>
-                        <p class="text-gray-700">A rhetorical and cognitive device that conveys complex cultural themes, representing a culture’s shared beliefs and practices. It highlights the interaction between language, thought, and cultural context.</p>
+                    <div class="p-6 bg-gradient-to-r from-purple-50 to-white rounded-lg border-l-4 border-purple-500">
+                        <h2 class="text-xl font-bold flex items-center mb-3">
+                            <i class="fas fa-yin-yang text-purple-500 mr-3"></i>
+                            Cultural Metaphor
+                        </h2>
+                        <p class="text-gray-700">A rhetorical and cognitive device that conveys complex cultural themes, representing a culture's shared beliefs and practices. It highlights the interaction between language, thought, and cultural context.</p>
                     </div>
-                     <hr>
-                    <div>
-                        <h2 class="text-xl font-bold">Translanguaging</h2>
+                    <div class="p-6 bg-gradient-to-r from-green-50 to-white rounded-lg border-l-4 border-green-500">
+                        <h2 class="text-xl font-bold flex items-center mb-3">
+                            <i class="fas fa-language text-green-500 mr-3"></i>
+                            Translanguaging
+                        </h2>
                         <p class="text-gray-700">A communicative practice where bilinguals and multilinguals fluidly utilize their full linguistic repertoire across languages and modes of expression to communicate and create meaning. It views languages not as separate systems, but as an integrated resource.</p>
                     </div>
-                     <hr>
-                    <div>
-                        <h2 class="text-xl font-bold">MIPVU</h2>
+                    <div class="p-6 bg-gradient-to-r from-orange-50 to-white rounded-lg border-l-4 border-orange-500">
+                        <h2 class="text-xl font-bold flex items-center mb-3">
+                            <i class="fas fa-search text-orange-500 mr-3"></i>
+                            MIPVU
+                        </h2>
                         <p class="text-gray-700">(Metaphor Identification Procedure VU University Amsterdam) A detailed, step-by-step method for identifying metaphor-related words in discourse. It provides clear guidelines and criteria to ensure reliable and consistent metaphor analysis.</p>
                     </div>
                 </div>
@@ -480,51 +753,91 @@
         <!-- News & Events Section -->
         <section id="news" class="page-section">
             <div class="container mx-auto px-6 py-16">
-                <h1 class="text-4xl font-bold text-center mb-12">News & Events</h1>
+                <div class="text-center mb-12">
+                    <div class="inline-block mb-4">
+                        <div class="flex items-center justify-center space-x-3 bg-gradient-to-r from-red-100 to-pink-100 px-6 py-3 rounded-full">
+                            <i class="fas fa-newspaper text-red-600 text-xl"></i>
+                            <span class="font-semibold" style="background: linear-gradient(135deg, #ef4444 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Latest Updates</span>
+                        </div>
+                    </div>
+                    <h1 class="text-4xl font-bold mb-4">
+                        <i class="fas fa-calendar-alt text-red-500 mr-3"></i>
+                        News & Events
+                    </h1>
+                    <p class="text-gray-600">Stay updated with our latest publications and presentations</p>
+                </div>
                 <div class="max-w-4xl mx-auto space-y-8">
                     <!-- News Item -->
-                    <div class="bg-white p-6 rounded-lg shadow-md flex items-start space-x-6">
-                         <div class="w-24 text-center flex-shrink-0">
-                            <div class="text-lg font-bold text-blue-600">JAN</div>
-                            <div class="text-4xl font-bold text-gray-800">2025</div>
-                         </div>
-                         <div class="flex-1">
-                            <h2 class="text-xl font-bold mb-2">Journal Article Published</h2>
-                            <p class="text-gray-600">Ma, Q., Su, X., Erni, J. N., & Xu, Z. (2025). <strong>Exploring transcultural translanguaging strategies in English literature of a bilingual Chinese author: a corpus-based study</strong>. <em>Asian Englishes</em>, 1-21.</p>
-                         </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition card-hover border-l-4 border-blue-500">
+                         <div class="flex items-start space-x-6">
+                            <div class="w-24 text-center flex-shrink-0">
+                                <div class="bg-blue-100 rounded-lg p-3">
+                                    <div class="text-sm font-bold text-blue-600">JAN</div>
+                                    <div class="text-3xl font-bold text-blue-800">2025</div>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <h2 class="text-xl font-bold mb-2 flex items-center">
+                                    <i class="fas fa-file-alt text-blue-500 mr-2"></i>
+                                    Journal Article Published
+                                </h2>
+                                <p class="text-gray-600">Ma, Q., Su, X., Erni, J. N., & Xu, Z. (2025). <strong>Exploring transcultural translanguaging strategies in English literature of a bilingual Chinese author: a corpus-based study</strong>. <em>Asian Englishes</em>, 1-21.</p>
+                            </div>
+                        </div>
                     </div>
                     <!-- News Item -->
-                    <div class="bg-white p-6 rounded-lg shadow-md flex items-start space-x-6">
-                         <div class="w-24 text-center flex-shrink-0">
-                            <div class="text-lg font-bold text-blue-600">FEB</div>
-                            <div class="text-4xl font-bold text-gray-800">2025</div>
-                         </div>
-                         <div class="flex-1">
-                            <h2 class="text-xl font-bold mb-2">Book Chapter Published</h2>
-                            <p class="text-gray-600">Ma, Q., & Su, X. (2025). <strong>“Showdown Looming in the Forbidden City—” A Corpus-based Study of Translanguaging Strategies Use by a Bilingual Chinese Author of English Fiction</strong>. In W. Lixun, M. Qing, & Z. Di (Eds.), <em>Technology-Enhanced and Corpus Based Language Learning and Teaching: Innovations and Insights</em> (pp. 130-149). Cambridge Scholars Publishing.</p>
-                         </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition card-hover border-l-4 border-green-500">
+                         <div class="flex items-start space-x-6">
+                            <div class="w-24 text-center flex-shrink-0">
+                                <div class="bg-green-100 rounded-lg p-3">
+                                    <div class="text-sm font-bold text-green-600">FEB</div>
+                                    <div class="text-3xl font-bold text-green-800">2025</div>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <h2 class="text-xl font-bold mb-2 flex items-center">
+                                    <i class="fas fa-book text-green-500 mr-2"></i>
+                                    Book Chapter Published
+                                </h2>
+                                <p class="text-gray-600">Ma, Q., & Su, X. (2025). <strong>"Showdown Looming in the Forbidden City—" A Corpus-based Study of Translanguaging Strategies Use by a Bilingual Chinese Author of English Fiction</strong>. In W. Lixun, M. Qing, & Z. Di (Eds.), <em>Technology-Enhanced and Corpus Based Language Learning and Teaching: Innovations and Insights</em> (pp. 130-149). Cambridge Scholars Publishing.</p>
+                            </div>
+                        </div>
                     </div>
                     <!-- News Item -->
-                    <div class="bg-white p-6 rounded-lg shadow-md flex items-start space-x-6">
-                         <div class="w-24 text-center flex-shrink-0">
-                            <div class="text-lg font-bold text-blue-600">JUL</div>
-                            <div class="text-4xl font-bold text-gray-800">2025</div>
-                         </div>
-                         <div class="flex-1">
-                            <h2 class="text-xl font-bold mb-2">Conference Presentation</h2>
-                            <p class="text-gray-600">Ma, Q., & Su, X. (2025). <strong>A Corpus-Based Approach for Investigating Cultural Metaphors in Bilingual English Literature and its implications for English Language Education</strong>. In the 9th HAAL (Hong Kong Association of Applied Linguistics) Conference, in Hong Kong SAR, China.</p>
-                         </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition card-hover border-l-4 border-purple-500">
+                         <div class="flex items-start space-x-6">
+                            <div class="w-24 text-center flex-shrink-0">
+                                <div class="bg-purple-100 rounded-lg p-3">
+                                    <div class="text-sm font-bold text-purple-600">JUL</div>
+                                    <div class="text-3xl font-bold text-purple-800">2025</div>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <h2 class="text-xl font-bold mb-2 flex items-center">
+                                    <i class="fas fa-presentation text-purple-500 mr-2"></i>
+                                    Conference Presentation
+                                </h2>
+                                <p class="text-gray-600">Ma, Q., & Su, X. (2025). <strong>A Corpus-Based Approach for Investigating Cultural Metaphors in Bilingual English Literature and its implications for English Language Education</strong>. In the 9th HAAL (Hong Kong Association of Applied Linguistics) Conference, in Hong Kong SAR, China.</p>
+                            </div>
+                        </div>
                     </div>
                     <!-- News Item -->
-                     <div class="bg-white p-6 rounded-lg shadow-md flex items-start space-x-6">
-                         <div class="w-24 text-center flex-shrink-0">
-                            <div class="text-lg font-bold text-blue-600">JUL</div>
-                            <div class="text-4xl font-bold text-gray-800">2024</div>
-                         </div>
-                         <div class="flex-1">
-                            <h2 class="text-xl font-bold mb-2">Conference Presentation & Award</h2>
-                            <p class="text-gray-600">Ma, Q., & Su, X. (2024). <strong>“Showdown looming in the Forbidden City—” A Corpus-based Study of Translanguaging Strategies Use by a Bilingual Chinese Author of English Fiction</strong>. In International Conference on Technology-Enhanced Language Learning and Teaching & Corpus-based Language Learning and Teaching 2024, in Hong Kong SAR, China. <span class="text-blue-600 font-bold">[The Best Paper Award]</span></p>
-                         </div>
+                     <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition card-hover border-l-4 border-yellow-500">
+                         <div class="flex items-start space-x-6">
+                            <div class="w-24 text-center flex-shrink-0">
+                                <div class="bg-yellow-100 rounded-lg p-3">
+                                    <div class="text-sm font-bold text-yellow-600">JUL</div>
+                                    <div class="text-3xl font-bold text-yellow-800">2024</div>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <h2 class="text-xl font-bold mb-2 flex items-center">
+                                    <i class="fas fa-trophy text-yellow-500 mr-2"></i>
+                                    Conference Presentation & Award
+                                </h2>
+                                <p class="text-gray-600">Ma, Q., & Su, X. (2024). <strong>"Showdown looming in the Forbidden City—" A Corpus-based Study of Translanguaging Strategies Use by a Bilingual Chinese Author of English Fiction</strong>. In International Conference on Technology-Enhanced Language Learning and Teaching & Corpus-based Language Learning and Teaching 2024, in Hong Kong SAR, China. <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800 ml-2"><i class="fas fa-award mr-1"></i>The Best Paper Award</span></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -532,15 +845,23 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white">
-        <div class="container mx-auto px-6 py-12">
+    <footer class="bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 text-white relative overflow-hidden">
+        <!-- Decorative elements -->
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+        <div class="container mx-auto px-6 py-12 relative z-10">
             <div class="grid md:grid-cols-3 gap-8">
                 <div>
-                    <h3 class="text-xl font-bold mb-4">The Digital Gateway to Asian Literature</h3>
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-book-open text-blue-400 mr-2"></i>
+                        The Digital Gateway to Asian Literature
+                    </h3>
                     <p class="text-gray-400">A research project from The Education University of Hong Kong, dedicated to exploring creativity, translanguaging, and language education in Asian literature written in English.</p>
                 </div>
                 <div>
-                    <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-link text-purple-400 mr-2"></i>
+                        Quick Links
+                    </h3>
                     <ul class="space-y-2">
                         <li><a href="#about" onclick="showPage('research', document.querySelector('a[href=\'#research\']')); document.getElementById('research-about').scrollIntoView();" class="text-gray-400 hover:text-white">About the Project</a></li>
                         <li><a href="#gateway" onclick="showPage('gateway', document.querySelector('a[href=\'#gateway\']'))" class="text-gray-400 hover:text-white">Corpus Tools</a></li>
@@ -551,13 +872,25 @@
                     </ul>
                 </div>
                 <div>
-                     <h3 class="text-lg font-semibold mb-4">Contact Us</h3>
-                     <p class="text-gray-400">Department of Linguistics and Modern Language Studies<br>The Education University of Hong Kong</p>
-                     <p class="text-gray-400 mt-2">Email: <a href="mailto:maqing@eduhk.hk" class="hover:text-white">maqing@eduhk.hk</a></p>
+                     <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-envelope text-green-400 mr-2"></i>
+                        Contact Us
+                     </h3>
+                     <p class="text-gray-400 flex items-start mb-3">
+                        <i class="fas fa-map-marker-alt text-blue-400 mr-2 mt-1"></i>
+                        <span>Department of Linguistics and Modern Language Studies<br>The Education University of Hong Kong</span>
+                     </p>
+                     <p class="text-gray-400 flex items-center">
+                        <i class="fas fa-at text-purple-400 mr-2"></i>
+                        <a href="mailto:maqing@eduhk.hk" class="hover:text-white transition">maqing@eduhk.hk</a>
+                     </p>
                 </div>
             </div>
             <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-500">
-                <p>&copy; 2025 The Digital Gateway to Asian Literature. All Rights Reserved.</p>
+                <p class="flex items-center justify-center">
+                    <i class="far fa-copyright mr-2"></i>
+                    2025 The Digital Gateway to Asian Literature. All Rights Reserved.
+                </p>
             </div>
         </div>
     </footer>
@@ -672,6 +1005,9 @@
         window.addEventListener('DOMContentLoaded', () => {
             loadAvailableCorpora();
             loadPublications();
+            // Initialize cultural insights title based on default selection
+            const defaultCorpus = document.getElementById('corpus-select').value;
+            updateCulturalInsightsTitle(defaultCorpus === 'custom' || defaultCorpus === 'upload');
         });
 
         function showPage(pageId, clickedLink) {
@@ -750,6 +1086,9 @@
                     // Store current corpus data
                     currentCorpusData.corpus_id = firstCorpusId;
                     currentCorpusData.text = '';
+                    
+                    // Update title for default corpus
+                    updateCulturalInsightsTitle(false);
                     
                     // Display results
                     displayWordList(data.wordlist);
@@ -849,6 +1188,10 @@
                 refInputBox.value = '';
                 currentCorpusData.text = '';
                 currentCorpusData.refText = '';
+                // Update title for uploaded text
+                updateCulturalInsightsTitle(true);
+                // Reset content
+                document.getElementById('cultural-insights-content').innerHTML = '<p class="text-gray-600">Upload or paste your text, then click "Analyze Text" to extract potential metaphorical patterns in the texts.</p>';
             } else if (this.value === 'upload') {
                 // Show upload section, hide text input
                 textInputSection.style.display = 'none';
@@ -860,6 +1203,10 @@
                     document.getElementById('upload-status').innerHTML = '';
                     document.getElementById('ref-upload-status').innerHTML = '';
                 }
+                // Update title for uploaded text
+                updateCulturalInsightsTitle(true);
+                // Reset content
+                document.getElementById('cultural-insights-content').innerHTML = '<p class="text-gray-600">Upload or paste your text, then click "Analyze Text" to extract potential metaphorical patterns in the texts.</p>';
             } else {
                 // Pre-loaded corpus selected
                 textInputSection.style.display = 'block';
@@ -870,6 +1217,10 @@
                 // Clear any previously uploaded/custom text
                 currentCorpusData.text = '';
                 currentCorpusData.refText = '';
+                // Update title for default corpus
+                updateCulturalInsightsTitle(false);
+                // Reset content
+                document.getElementById('cultural-insights-content').innerHTML = '<p class="text-gray-600">Our system will automatically highlight significant cultural metaphors, linguistic innovations, and translanguaging strategies from your text here.</p>';
             }
         });
         
@@ -1063,11 +1414,21 @@
                     currentCorpusData.corpus_id = selectedCorpus;
                     currentCorpusData.text = text;
                     
+                    // Check if this is uploaded/custom text
+                    const isUploadedText = (selectedCorpus === 'upload' || selectedCorpus === 'custom');
+                    
+                    // Update the cultural insights section title
+                    updateCulturalInsightsTitle(isUploadedText);
+                    
                     // Display results
                     displayWordList(data.wordlist);
                     displayKeywords(data.keywords);
                     displayNgrams(data.ngrams, 3);
-                    displayCulturalInsights(data.cultural_insights);
+                    
+                    // For default corpus, show cultural insights from research
+                    if (!isUploadedText) {
+                        displayCulturalInsights(data.cultural_insights);
+                    }
                     
                     // Update concordance and collocates placeholders
                     document.getElementById('concordance').innerHTML = `<p class="text-gray-500">Analysis complete. Enter a search term in the box below and press Enter to view concordance lines.</p>
@@ -1082,7 +1443,7 @@
                         </div>`;
                     
                     // For uploaded or custom corpus, run comprehensive metaphor analysis
-                    if (selectedCorpus === 'upload' || selectedCorpus === 'custom') {
+                    if (isUploadedText) {
                         runMetaphorAnalysis(text, currentCorpusData.refText);
                     }
                 } else {
@@ -1175,6 +1536,18 @@
             }
         }
 
+        // Function to update cultural insights card title based on corpus type
+        function updateCulturalInsightsTitle(isUploadedText) {
+            const titleElement = document.querySelector('#cultural-insights-card h3');
+            const iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7.014A8.003 8.003 0 0117.657 18.657z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1014.12 11.88l-4.242 4.242z" /></svg>`;
+            
+            if (isUploadedText) {
+                titleElement.innerHTML = iconSVG + 'Potential Metaphorical Patterns Extraction';
+            } else {
+                titleElement.innerHTML = iconSVG + 'Cultural Insights';
+            }
+        }
+        
         function displayCulturalInsights(insights) {
             const contentDiv = document.getElementById('cultural-insights-content');
             
@@ -1404,12 +1777,12 @@
             const contentDiv = document.getElementById('cultural-insights-content');
             contentDiv.innerHTML = `
                 <div class="space-y-2">
-                    <p class="text-gray-600">🔍 Running comprehensive metaphor analysis...</p>
+                    <p class="text-gray-600">🔍 Extracting potential metaphorical patterns from your text...</p>
                     <p class="text-xs text-gray-500">This may take 2-3 minutes for large texts.</p>
                     <div class="mt-4 space-y-1 text-xs text-gray-500">
-                        <p>⏳ Phase 1: Identifying cultural keywords...</p>
-                        <p>⏳ Phase 2: Detecting signaling markers...</p>
-                        <p>⏳ Phase 3: Finding metaphor structures...</p>
+                        <p>⏳ Phase 1: Identifying culturally-relevant keywords...</p>
+                        <p>⏳ Phase 2: Detecting potential signaling markers...</p>
+                        <p>⏳ Phase 3: Analyzing metaphorical structures...</p>
                     </div>
                 </div>
             `;
@@ -1431,11 +1804,11 @@
                 if (data.success) {
                     displayMetaphorResults(data.results);
                 } else {
-                    contentDiv.innerHTML = `<p class="text-red-600">❌ Analysis failed: ${data.error}</p>`;
+                    contentDiv.innerHTML = `<p class="text-red-600">❌ Metaphorical pattern extraction failed: ${data.error}</p>`;
                 }
             } catch (error) {
                 console.error('Metaphor analysis error:', error);
-                contentDiv.innerHTML = '<p class="text-red-600">❌ An error occurred during metaphor analysis.</p>';
+                contentDiv.innerHTML = '<p class="text-red-600">❌ An error occurred during metaphorical pattern extraction.</p>';
             }
         }
         
@@ -1451,13 +1824,18 @@
                     <h4 class="font-bold text-blue-800 flex items-center">
                         <span id="cultural-keywords-icon" class="mr-2">▼</span>
                         <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded mr-2">${results.cultural_keywords.total}</span>
-                        Cultural Keywords
+                        Keywords Candidates
                     </h4>
                     <span class="text-xs text-blue-600">Click to expand/collapse</span>
                 </div>
             </div>`;
             
             html += '<div id="cultural-keywords-section" class="p-3 bg-white">';
+            // Add explanation
+            html += `<div class="bg-blue-50 border-l-4 border-blue-400 p-3 mb-3 text-xs text-gray-700">
+                <p class="font-semibold text-blue-800 mb-1">📚 What are Keywords Candidates?</p>
+                <p>Keywords are culturally significant words that appear more frequently in your text compared to general language use. Our research shows that cultural metaphors often cluster around these keywords. By identifying words with high cultural relevance (using keyness scores), we can locate potential metaphorical expressions that carry cultural meaning.</p>
+            </div>`;
             if (results.cultural_keywords.items.length > 0) {
                 html += '<div class="space-y-2">';
                 results.cultural_keywords.items.slice(0, 20).forEach((item, idx) => {
@@ -1501,13 +1879,18 @@
                     <h4 class="font-bold text-green-800 flex items-center">
                         <span id="signaling-markers-icon" class="mr-2">▼</span>
                         <span class="bg-green-100 text-green-800 px-2 py-1 rounded mr-2">${results.signaling_markers.total}</span>
-                        Signaling Markers
+                        Signaling Markers Candidates
                     </h4>
                     <span class="text-xs text-green-600">Click to expand/collapse</span>
                 </div>
             </div>`;
             
             html += '<div id="signaling-markers-section" class="p-3 bg-white">';
+            // Add explanation
+            html += `<div class="bg-green-50 border-l-4 border-green-400 p-3 mb-3 text-xs text-gray-700">
+                <p class="font-semibold text-green-800 mb-1">🔍 What are Signaling Markers Candidates?</p>
+                <p>Signaling markers are linguistic cues that often introduce or frame metaphorical language. Based on our research, phrases like "as if," "like," "seem," and "resemble" frequently signal metaphorical comparisons. These markers help readers understand when an author is using figurative rather than literal language, making them valuable indicators of potential metaphors in texts.</p>
+            </div>`;
             if (results.signaling_markers.items.length > 0) {
                 html += '<div class="space-y-2">';
                 results.signaling_markers.items.slice(0, 20).forEach((item, idx) => {
@@ -1551,13 +1934,18 @@
                     <h4 class="font-bold text-purple-800 flex items-center">
                         <span id="metaphor-structures-icon" class="mr-2">▼</span>
                         <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded mr-2">${results.metaphor_structures.total}</span>
-                        "X is Y" Metaphor Structures
+                        "X is Y" Metaphor Structures Candidates
                     </h4>
                     <span class="text-xs text-purple-600">Click to expand/collapse</span>
                 </div>
             </div>`;
             
             html += '<div id="metaphor-structures-section" class="p-3 bg-white">';
+            // Add explanation
+            html += `<div class="bg-purple-50 border-l-4 border-purple-400 p-3 mb-3 text-xs text-gray-700">
+                <p class="font-semibold text-purple-800 mb-1">💡 What are "X is Y" Metaphor Structures Candidates?</p>
+                <p>This approach identifies explicit metaphorical statements following the "X is Y" pattern (e.g., "Life is a journey"). Our research methodology uses semantic distance analysis to detect when the subject (X) and predicate (Y) are conceptually distant, suggesting metaphorical rather than literal meaning. A higher semantic distance score indicates a stronger likelihood of metaphorical usage, as the two concepts being equated are more dissimilar.</p>
+            </div>`;
             if (results.metaphor_structures.items.length > 0) {
                 html += '<div class="space-y-2">';
                 results.metaphor_structures.items.forEach((item, idx) => {
