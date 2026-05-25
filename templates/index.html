@@ -909,6 +909,10 @@
             refText: ''
         };
         
+        // --- Global variable to store concordance results ---
+        let currentConcordanceResults = [];
+        let currentSearchTerm = '';
+        
         // --- Global storage for large texts (to avoid sessionStorage quota issues) ---
         window.corpusTextStorage = window.corpusTextStorage || {};
         
@@ -1607,6 +1611,10 @@
         }
         
         function displayConcordance(results, searchTerm) {
+            // Store results globally for context access
+            currentConcordanceResults = results;
+            currentSearchTerm = searchTerm;
+            
             let html = `<h3 class="font-bold mb-2">Concordance: "${escapeHtml(searchTerm)}" (${results.length} result${results.length !== 1 ? 's' : ''})</h3>
                         <div class="mt-4 mb-4">
                             <input type="text" id="concordance-search" value="${escapeHtml(searchTerm)}" placeholder="Search term..." class="w-full p-2 border rounded-md" onkeypress="if(event.key==='Enter') searchConcordance()">
@@ -1616,10 +1624,10 @@
             if (results.length === 0) {
                 html += '<p class="text-gray-500">No matches found.</p>';
             } else {
-                html += '<p class="text-xs text-gray-500 mb-2 italic">Click on any occurrence to view it in full context</p>';
+                html += '<p class="text-xs text-gray-500 mb-2 italic">Click on any occurrence to view it in full context with sentence highlighting</p>';
                 html += '<div class="space-y-2">';
                 results.forEach((item, i) => {
-                    html += `<div class="text-sm border-b pb-2 hover:bg-blue-50 transition cursor-pointer rounded px-2 py-1" onclick="openContextByPosition(${item.position})">
+                    html += `<div class="text-sm border-b pb-2 hover:bg-blue-50 transition cursor-pointer rounded px-2 py-1" onclick="openContextWithSentence(${i})">
                                 <span class="text-gray-600">${escapeHtml(item.left)}</span>
                                 <span class="font-bold text-blue-600 mx-1">${escapeHtml(item.keyword)}</span>
                                 <span class="text-gray-600">${escapeHtml(item.right)}</span>
@@ -1630,6 +1638,76 @@
             }
             
             document.getElementById('concordance').innerHTML = html;
+        }
+        
+        function openContextWithSentence(resultIndex) {
+            // Get the concordance result for this index
+            if (resultIndex < 0 || resultIndex >= currentConcordanceResults.length) {
+                alert('Invalid result index');
+                return;
+            }
+            
+            const result = currentConcordanceResults[resultIndex];
+            const sentence = result.sentence || '';
+            const keyword = currentSearchTerm;
+            
+            console.log('openContextWithSentence called with:', { resultIndex, sentence, keyword });
+            console.log('currentCorpusData:', currentCorpusData);
+            
+            try {
+                // Clean up old sessionStorage entries first
+                cleanupSessionStorage();
+                
+                // Generate a unique key for this context view
+                const contextKey = `corpus_context_latest`;
+                
+                // For custom/uploaded text, store in global variable to avoid sessionStorage quota
+                let textStorageKey = null;
+                if ((currentCorpusData.corpus_id === 'custom' || currentCorpusData.corpus_id === 'upload') && currentCorpusData.text) {
+                    textStorageKey = `text_latest`;
+                    window.corpusTextStorage[textStorageKey] = currentCorpusData.text;
+                }
+                
+                // Store metadata in sessionStorage with sentence and keyword for dual highlighting
+                const contextData = {
+                    corpus_id: currentCorpusData.corpus_id,
+                    sentence: sentence,
+                    highlight_keyword: keyword,
+                    highlight_mode: 'keyword',  // keyword mode for dual highlighting
+                    textStorageKey: textStorageKey,
+                    timestamp: Date.now()
+                };
+                
+                console.log('Storing context data:', contextData);
+                try {
+                    sessionStorage.setItem(contextKey, JSON.stringify(contextData));
+                } catch (storageError) {
+                    console.error('SessionStorage error:', storageError);
+                    // Clear everything and try again
+                    sessionStorage.clear();
+                    sessionStorage.setItem(contextKey, JSON.stringify(contextData));
+                }
+                
+                // Build URL with just the key
+                const url = `/context?key=${contextKey}`;
+                console.log('Opening URL:', url);
+                
+                // Open context in new window/tab
+                const newWindow = window.open(url, '_blank', 'width=1000,height=800,scrollbars=yes,resizable=yes');
+                
+                console.log('Window opened:', newWindow);
+                
+                // Check if popup was blocked
+                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                    console.warn('Popup appears to be blocked');
+                    if (confirm('Popup was blocked by your browser. Open context in a new tab instead?')) {
+                        window.open(url, '_blank');
+                    }
+                }
+            } catch (error) {
+                console.error('Error opening context:', error);
+                alert('Failed to open context view: ' + error.message);
+            }
         }
         
         function openContextByPosition(position) {

@@ -22,6 +22,20 @@
             border-radius: 6px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+        .sentence-highlight {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            padding: 4px 0;
+            border-radius: 4px;
+            border-left: 3px solid #3b82f6;
+            padding-left: 8px;
+        }
+        .keyword-in-sentence {
+            background: linear-gradient(135deg, #fef08a 0%, #fde047 100%);
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
         .context-text {
             line-height: 1.8;
             font-size: 1.1rem;
@@ -44,7 +58,7 @@
             </div>
             <p class="text-gray-600 mt-2 flex items-center">
                 <i class="fas fa-info-circle text-blue-400 mr-2"></i>
-                Viewing the occurrence in its full context within the corpus
+                Viewing the occurrence with sentence context (blue) and keyword (yellow) highlighting
             </p>
         </div>
 
@@ -82,7 +96,7 @@
                 <div class="mt-4">
                     <button onclick="scrollToHighlight()" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-3 rounded-lg hover:from-blue-600 hover:to-blue-700 transition text-sm shadow-md hover:shadow-lg flex items-center">
                         <i class="fas fa-location-arrow mr-2"></i>
-                        Jump to Highlighted Word
+                        Jump to Highlighted Section
                     </button>
                 </div>
             </div>
@@ -97,7 +111,7 @@
                 <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
                     <p class="text-sm text-gray-700 flex items-start">
                         <i class="fas fa-lightbulb text-yellow-500 mr-2 mt-0.5"></i>
-                        <span><strong>Tip:</strong> The highlighted word shows the searched term in its original context within the full corpus. Scroll through to explore the entire text, or use the "Jump to Highlighted Word" button to return to the occurrence.</span>
+                        <span><strong>Tip:</strong> The blue-highlighted area shows the full sentence containing your search term, while the yellow highlight emphasizes the specific keyword. This dual highlighting helps you understand the word in its complete sentence context. Scroll through to explore the entire text, or use the "Jump to Highlighted Word" button to return to the occurrence.</span>
                     </p>
                 </div>
             </div>
@@ -257,8 +271,10 @@
                 // Old position-based display
                 positionInfoElement.textContent = `Word ${data.position + 1} of ${data.total_words.toLocaleString()}`;
             } else if (data.highlight_mode) {
-                // New mode display
-                if (data.highlight_mode === 'keyword') {
+                // New mode display with dual highlighting
+                if (data.highlight_mode === 'keyword' && data.sentence_data && data.sentence_data.keyword) {
+                    positionInfoElement.textContent = 'Sentence (blue) and keyword (yellow) highlighted';
+                } else if (data.highlight_mode === 'keyword') {
                     positionInfoElement.textContent = 'Keyword highlighted';
                 } else {
                     positionInfoElement.textContent = 'Sentence highlighted';
@@ -267,14 +283,48 @@
                 positionInfoElement.textContent = 'Highlighted text';
             }
 
-            // Display full corpus with highlighted keyword or sentence
-            const contextHTML = `
-                <span class="text-gray-700">${escapeHtml(data.before)}</span><span id="highlighted-word" class="highlight">${escapeHtml(data.keyword)}</span><span class="text-gray-700">${escapeHtml(data.after)}</span>
-            `;
+            // Check if we have sentence data for dual highlighting
+            let contextHTML;
+            if (data.sentence_data && data.sentence_data.full_sentence && data.sentence_data.keyword) {
+                // Dual highlighting mode: sentence + keyword
+                const sentence = data.sentence_data.full_sentence;
+                const keyword = data.sentence_data.keyword;
+                
+                // Find and highlight the keyword within the sentence
+                const keywordPattern = new RegExp('\\b' + escapeRegex(keyword) + '\\b', 'gi');
+                let highlightedSentence = escapeHtml(sentence);
+                
+                // Replace keyword with highlighted version
+                highlightedSentence = highlightedSentence.replace(
+                    new RegExp('\\b' + escapeRegex(escapeHtml(keyword)) + '\\b', 'gi'),
+                    '<span class="keyword-in-sentence">$&</span>'
+                );
+                
+                // Wrap the sentence in sentence highlight
+                const sentenceHTML = `<span class="sentence-highlight">${highlightedSentence}</span>`;
+                
+                // Find the sentence in the full text to split before/after
+                const beforeText = escapeHtml(data.before);
+                const afterText = escapeHtml(data.after);
+                
+                contextHTML = `
+                    <span class="text-gray-700">${beforeText}</span><span id="highlighted-word">${sentenceHTML}</span><span class="text-gray-700">${afterText}</span>
+                `;
+            } else {
+                // Single highlight mode (original)
+                contextHTML = `
+                    <span class="text-gray-700">${escapeHtml(data.before)}</span><span id="highlighted-word" class="highlight">${escapeHtml(data.keyword)}</span><span class="text-gray-700">${escapeHtml(data.after)}</span>
+                `;
+            }
+            
             document.getElementById('context-text').innerHTML = contextHTML;
             
             // Auto-scroll to highlighted word after a brief delay
             setTimeout(scrollToHighlight, 300);
+        }
+        
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
         
         function scrollToHighlight() {

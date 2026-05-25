@@ -205,16 +205,49 @@ def generate_concordance(text, search_term, context_window=5):
     results = []
     search_lower = search_term.lower()
     
+    # Common sentence-ending punctuation
+    sentence_enders = {'.', '!', '?', '...'}
+    
     for i, word in enumerate(words):
         if search_lower == word.lower():
             left = ' '.join(words[max(0, i-context_window):i])
             center = word
             right = ' '.join(words[i+1:min(len(words), i+context_window+1)])
+            
+            # Find sentence boundaries
+            # Look backward for sentence start
+            sentence_start = i
+            for j in range(i - 1, -1, -1):
+                word_text = words[j]
+                # Check if this word ends with sentence-ending punctuation
+                if any(word_text.endswith(ender) for ender in sentence_enders):
+                    sentence_start = j + 1
+                    break
+            else:
+                sentence_start = 0
+            
+            # Look forward for sentence end
+            sentence_end = i
+            for j in range(i, len(words)):
+                word_text = words[j]
+                # Check if this word ends with sentence-ending punctuation
+                if any(word_text.endswith(ender) for ender in sentence_enders):
+                    sentence_end = j + 1
+                    break
+            else:
+                sentence_end = len(words)
+            
+            # Extract full sentence
+            full_sentence = ' '.join(words[sentence_start:sentence_end])
+            
             results.append({
                 'left': left,
                 'keyword': center,
                 'right': right,
-                'position': i  # Add position information
+                'position': i,  # Add position information
+                'sentence': full_sentence,  # Add full sentence
+                'sentence_start': sentence_start,
+                'sentence_end': sentence_end
             })
     
     return results
@@ -844,6 +877,12 @@ def get_context():
             # Sentence mode - highlight the whole sentence
             highlighted_text = sentence_in_text
         
+        # Also return the sentence boundaries for dual highlighting
+        sentence_data = {
+            'full_sentence': sentence_in_text,
+            'keyword': highlight_keyword if highlight_keyword else ''
+        }
+        
         # Get corpus title if available
         corpus_title = corpus_id
         if corpus_id not in ['custom', 'upload']:
@@ -857,7 +896,8 @@ def get_context():
             'keyword': highlighted_text,
             'after': after_text,
             'corpus_title': corpus_title,
-            'highlight_mode': highlight_mode
+            'highlight_mode': highlight_mode,
+            'sentence_data': sentence_data  # Include sentence data for dual highlighting
         })
     except Exception as e:
         import traceback
