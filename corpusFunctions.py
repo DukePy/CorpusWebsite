@@ -200,26 +200,33 @@ def get_word_frequencies(tokens):
     return Counter(tokens)
 
 def generate_concordance(text, search_term, context_window=5):
-    """Generate concordance lines for a search term"""
+    """Generate concordance lines for a search term (handles single words and multi-word phrases)"""
+    search_tokens = [w.lower() for w in search_term.split() if w]
+    search_len = len(search_tokens)
+    if search_len == 0:
+        return []
+        
     words = text.split()
     results = []
-    search_lower = search_term.lower()
+    
+    # Pre-clean words for case-insensitive and punctuation-insensitive matching
+    cleaned_words = [re.sub(r'^\W+|\W+$', '', w).lower() for w in words]
     
     # Common sentence-ending punctuation
     sentence_enders = {'.', '!', '?', '...'}
     
-    for i, word in enumerate(words):
-        if search_lower == word.lower():
+    for i in range(len(words) - search_len + 1):
+        # Check if the sub-sequence matches the search tokens
+        if cleaned_words[i : i + search_len] == search_tokens:
             left = ' '.join(words[max(0, i-context_window):i])
-            center = word
-            right = ' '.join(words[i+1:min(len(words), i+context_window+1)])
+            center = ' '.join(words[i : i + search_len])
+            right = ' '.join(words[i + search_len : min(len(words), i + search_len + context_window)])
             
             # Find sentence boundaries
             # Look backward for sentence start
             sentence_start = i
             for j in range(i - 1, -1, -1):
                 word_text = words[j]
-                # Check if this word ends with sentence-ending punctuation
                 if any(word_text.endswith(ender) for ender in sentence_enders):
                     sentence_start = j + 1
                     break
@@ -227,10 +234,9 @@ def generate_concordance(text, search_term, context_window=5):
                 sentence_start = 0
             
             # Look forward for sentence end
-            sentence_end = i
-            for j in range(i, len(words)):
+            sentence_end = i + search_len - 1
+            for j in range(i + search_len - 1, len(words)):
                 word_text = words[j]
-                # Check if this word ends with sentence-ending punctuation
                 if any(word_text.endswith(ender) for ender in sentence_enders):
                     sentence_end = j + 1
                     break
@@ -244,7 +250,7 @@ def generate_concordance(text, search_term, context_window=5):
                 'left': left,
                 'keyword': center,
                 'right': right,
-                'position': i,  # Add position information
+                'position': i,  # Add start position information
                 'sentence': full_sentence,  # Add full sentence
                 'sentence_start': sentence_start,
                 'sentence_end': sentence_end
@@ -253,15 +259,21 @@ def generate_concordance(text, search_term, context_window=5):
     return results
 
 def calculate_collocates(tokens, search_term, window=5):
-    """Find collocates of a search term"""
+    """Find collocates of a search term (handles single words and multi-word phrases)"""
     collocates = []
-    search_lower = search_term.lower()
+    # Clean and tokenize the search term the same way target text is tokenized
+    search_tokens = [t for t in search_term.lower().split() if t.isalnum()]
+    search_len = len(search_tokens)
     
-    for i, token in enumerate(tokens):
-        if token == search_lower:
+    if not search_tokens or len(tokens) < search_len:
+        return []
+    
+    for i in range(len(tokens) - search_len + 1):
+        if tokens[i : i + search_len] == search_tokens:
             start = max(0, i - window)
-            end = min(len(tokens), i + window + 1)
-            context = tokens[start:i] + tokens[i+1:end]
+            end = min(len(tokens), i + search_len + window)
+            # Context excludes the search term sequence itself
+            context = tokens[start:i] + tokens[i + search_len:end]
             collocates.extend(context)
     
     if not collocates:
@@ -862,12 +874,8 @@ def get_context():
                 keyword_start = match.start()
                 keyword_end = match.end()
                 keyword_text = sentence_in_text[keyword_start:keyword_end]
-                sentence_before_keyword = sentence_in_text[:keyword_start]
-                sentence_after_keyword = sentence_in_text[keyword_end:]
                 
-                # Combine with before text
-                before_text = before_text + sentence_before_keyword
-                after_text = sentence_after_keyword + after_text
+                # Keep before_text and after_text as the text strictly before and after the full sentence
                 highlighted_text = keyword_text
             else:
                 # Keyword not found, highlight whole sentence
@@ -909,9 +917,15 @@ def run_metaphor_analysis():
     """Run comprehensive metaphor analysis on uploaded corpus"""
     try:
         data = request.json
+        corpus_id = data.get('corpus_id', 'custom')
         text = data.get('text', '')
         ref_text = data.get('ref_text', '')
         
+        if corpus_id != 'custom' and corpus_id != 'upload':
+            text = get_corpus_text(corpus_id)
+            if text is None:
+                return jsonify({'error': f'Corpus "{corpus_id}" not found'}), 404
+                
         if not text or not text.strip():
             return jsonify({'error': 'No text provided'}), 400
         
@@ -1020,8 +1034,8 @@ def run_metaphor_analysis():
                 }
             }
             
-            # Format cultural keywords (top 20)
-            for kw in results['cultural_keywords']['keywords'][:20]:
+            # Format cultural keywords (all)
+            for kw in results['cultural_keywords']['keywords']:
                 formatted_results['cultural_keywords']['items'].append({
                     'keyword': kw['keyword'],
                     'frequency': kw['occurrence_count'],
@@ -1035,8 +1049,8 @@ def run_metaphor_analysis():
                     ]
                 })
             
-            # Format signaling markers (top 20)
-            for marker in results['signaling_markers']['markers'][:20]:
+            # Format signaling markers (all)
+            for marker in results['signaling_markers']['markers']:
                 formatted_results['signaling_markers']['items'].append({
                     'marker': marker['marker'],
                     'frequency': marker['occurrence_count'],
@@ -1113,5 +1127,5 @@ def run_metaphor_analysis():
         return jsonify({'error': f'Analysis failed: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)
 
