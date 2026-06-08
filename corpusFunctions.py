@@ -914,14 +914,42 @@ def get_context():
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
-# Global dictionary to track background tasks
-analysis_tasks = {}
+# Path to tasks directory
+TASKS_DIR = os.path.join(os.path.dirname(__file__), 'tasks')
+if not os.path.exists(TASKS_DIR):
+    os.makedirs(TASKS_DIR)
+
+def save_task_status(task_id, status, results=None, error=None):
+    """Save task status to a JSON file on disk for process safety"""
+    task_file = os.path.join(TASKS_DIR, f"task_{task_id}.json")
+    task_data = {
+        "status": status,
+        "results": results,
+        "error": error
+    }
+    try:
+        with open(task_file, 'w', encoding='utf-8') as f:
+            json.dump(task_data, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        print(f"Error saving task status for {task_id}: {e}")
+
+def get_task_status(task_id):
+    """Retrieve task status from JSON file on disk"""
+    task_file = os.path.join(TASKS_DIR, f"task_{task_id}.json")
+    if not os.path.exists(task_file):
+        return None
+    try:
+        with open(task_file, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error reading task status for {task_id}: {e}")
+        return None
 
 def background_analysis_worker(task_id, text, ref_text, corpus_id):
-    """Worker function that runs in a background thread to process metaphor analysis"""
-    analysis_tasks[task_id]["status"] = "running"
+    """Worker function that runs in a background process to process metaphor analysis"""
+    save_task_status(task_id, "running")
     
-    # IMPORTANT: Patch SQLite FIRST to allow cross-thread usage
+    # IMPORTANT: Patch SQLite FIRST to allow cross-thread/process usage
     # The entity linker's knowledge base uses SQLite, which by default doesn't allow
     # connections to be used across threads. We patch it to enable this.
     import sqlite3
@@ -1054,14 +1082,12 @@ def background_analysis_worker(task_id, text, ref_text, corpus_id):
                 'sentence_id': sentence_id
             })
             
-        analysis_tasks[task_id]["results"] = formatted_results
-        analysis_tasks[task_id]["status"] = "completed"
+        save_task_status(task_id, "completed", results=formatted_results)
         
     except Exception as e:
         import traceback
         traceback.print_exc()
-        analysis_tasks[task_id]["status"] = "failed"
-        analysis_tasks[task_id]["error"] = str(e)
+        save_task_status(task_id, "failed", error=str(e))
         
     finally:
         # Restore original settings
@@ -1104,19 +1130,16 @@ def run_metaphor_analysis():
             
         # Create a unique task ID
         task_id = str(uuid.uuid4())
-        analysis_tasks[task_id] = {
-            "status": "pending",
-            "results": None,
-            "error": None
-        }
+        save_task_status(task_id, "pending")
         
-        # Spawn background thread to run analysis
-        thread = threading.Thread(
+        # Spawn background process to run analysis
+        import multiprocessing
+        process = multiprocessing.Process(
             target=background_analysis_worker,
             args=(task_id, text, ref_text, corpus_id)
         )
-        thread.daemon = True
-        thread.start()
+        process.daemon = True
+        process.start()
         
         return jsonify({
             'success': True,
@@ -1132,7 +1155,7 @@ def run_metaphor_analysis():
 @app.route('/api/metaphor_analysis/status/<task_id>', methods=['GET'])
 def get_metaphor_analysis_status(task_id):
     """Check the status of a background metaphor analysis task"""
-    task = analysis_tasks.get(task_id)
+    task = get_task_status(task_id)
     if not task:
         return jsonify({'success': False, 'error': 'Task not found'}), 404
         
