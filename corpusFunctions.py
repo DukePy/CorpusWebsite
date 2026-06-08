@@ -1166,6 +1166,39 @@ def get_metaphor_analysis_status(task_id):
         'error': task['error']
     })
 
+@app.after_request
+def compress(response):
+    """Gzip compress large responses to prevent Nginx proxy buffering crashes (ERR_CONTENT_LENGTH_MISMATCH)"""
+    accept_encoding = request.headers.get('Accept-Encoding', '')
+    if 'gzip' not in accept_encoding.lower():
+        return response
+
+    response.direct_passthrough = False
+    if (response.status_code < 200 or
+        response.status_code >= 300 or
+        'gzip' in response.headers.get('Content-Encoding', '') or
+        'image' in response.headers.get('Content-Type', '')):
+        return response
+
+    # Only compress responses larger than 10KB
+    content = response.get_data()
+    if len(content) < 10000:
+        return response
+
+    import gzip
+    import io
+
+    gzip_buffer = io.BytesIO()
+    gzip_file = gzip.GzipFile(mode='wb', fileobj=gzip_buffer)
+    gzip_file.write(content)
+    gzip_file.close()
+
+    response.set_data(gzip_buffer.getvalue())
+    response.headers['Content-Encoding'] = 'gzip'
+    response.headers['Content-Length'] = len(response.get_data())
+
+    return response
+
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
 
