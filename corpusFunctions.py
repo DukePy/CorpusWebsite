@@ -812,10 +812,19 @@ def get_context():
             if position < 0 or position >= len(words):
                 return jsonify({'error': 'Invalid position'}), 400
             
-            # Return full corpus with position info
+            # Return context words with position info (limiting to 2,000 words before and after to avoid Nginx buffer issues)
             keyword = words[position]
-            before_text = ' '.join(words[:position])
-            after_text = ' '.join(words[position+1:])
+            max_words = 2000
+            
+            before_words = words[max(0, position - max_words):position]
+            before_text = ' '.join(before_words)
+            if position > max_words:
+                before_text = "... " + before_text
+                
+            after_words = words[position+1:position+1+max_words]
+            after_text = ' '.join(after_words)
+            if len(words) > position + 1 + max_words:
+                after_text = after_text + " ..."
             
             # Get corpus title if available
             corpus_title = corpus_id
@@ -860,10 +869,20 @@ def get_context():
         if sentence_index == -1:
             return jsonify({'error': 'Could not locate sentence in corpus'}), 404
         
-        # Get the text before and after the sentence
-        before_text = text[:sentence_index]
+        # Get the text before and after the sentence (limiting to 15,000 characters before and after to avoid Nginx buffer issues)
+        max_context = 15000
+        
+        before_start = max(0, sentence_index - max_context)
+        before_text = text[before_start:sentence_index]
+        if before_start > 0:
+            before_text = "... " + before_text
+            
         sentence_in_text = text[sentence_index:sentence_index + len(sentence)]
-        after_text = text[sentence_index + len(sentence):]
+        
+        after_end = min(len(text), sentence_index + len(sentence) + max_context)
+        after_text = text[sentence_index + len(sentence):after_end]
+        if after_end < len(text):
+            after_text = after_text + " ..."
         
         # For keyword mode, find and highlight the keyword within the sentence
         if highlight_mode == 'keyword' and highlight_keyword:
