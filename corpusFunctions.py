@@ -9,6 +9,8 @@ import os
 import tempfile
 from pathlib import Path
 import json
+import uuid
+import threading
 
 # Download required NLTK data (will only download once)
 try:
@@ -912,9 +914,180 @@ def get_context():
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
+# Global dictionary to track background tasks
+analysis_tasks = {}
+
+def background_analysis_worker(task_id, text, ref_text, corpus_id):
+    """Worker function that runs in a background thread to process metaphor analysis"""
+    analysis_tasks[task_id]["status"] = "running"
+    
+    # IMPORTANT: Patch SQLite FIRST to allow cross-thread usage
+    # The entity linker's knowledge base uses SQLite, which by default doesn't allow
+    # connections to be used across threads. We patch it to enable this.
+    import sqlite3
+    
+    # Store original connect function
+    original_sqlite_connect = sqlite3.connect
+    
+    # Patch sqlite3.connect to add check_same_thread=False
+    def patched_connect(database, timeout=5.0, detect_types=0, isolation_level='DEFERRED', 
+                      check_same_thread=True, factory=sqlite3.Connection, cached_statements=128, uri=False):
+        return original_sqlite_connect(database, timeout=timeout, detect_types=detect_types,
+                                     isolation_level=isolation_level, check_same_thread=False,
+                                     factory=factory, cached_statements=cached_statements, uri=uri)
+    
+    sqlite3.connect = patched_connect
+    
+    # Configure the analysis settings
+    import culturalKeywordsListIdentification_1 as ckl
+    
+    # Store original values
+    original_use_entity_linker = ckl.USE_ENTITY_LINKER
+    original_run_coref = ckl.RUN_COREF
+    original_use_real_spacy = ckl.USE_REAL_SPACY
+    
+    # Enable entity linker with cross-thread SQLite support
+    ckl.USE_ENTITY_LINKER = True
+    ckl.RUN_COREF = False  # Disable coref to speed up analysis
+    ckl.USE_REAL_SPACY = True
+    
+    tmp_corpus_path = None
+    tmp_ref_path = None
+    
+    try:
+        # Create temporary files for the corpus text
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as tmp_file:
+            tmp_file.write(text)
+            tmp_corpus_path = tmp_file.name
+        
+        # Create temporary file for reference corpus if provided
+        if ref_text and ref_text.strip():
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as tmp_ref_file:
+                tmp_ref_file.write(ref_text)
+                tmp_ref_path = tmp_ref_file.name
+                
+        # Use custom reference corpus if provided, otherwise use default
+        if tmp_ref_path:
+            reference_corpus = tmp_ref_path
+        else:
+            reference_corpus = os.path.join(os.path.dirname(__file__), 'Enigma of China Reference Corpus.txt')
+            
+            if not os.path.exists(reference_corpus):
+                raise FileNotFoundError('Default reference corpus not found')
+                
+        from comprehensive_metaphor_analysis import ComprehensiveMetaphorAnalyzer
+        
+        # Initialize analyzer
+        analyzer = ComprehensiveMetaphorAnalyzer(
+            corpus_file=tmp_corpus_path,
+            reference_corpus_files=[reference_corpus]
+        )
+        
+        # Run complete analysis
+        results = analyzer.run_complete_analysis(similarity_threshold=0.5)
+        
+        # Format the results to be more frontend-friendly
+        formatted_results = {
+            'cultural_keywords': {
+                'total': results['cultural_keywords']['total_keywords'],
+                'items': []
+            },
+            'signaling_markers': {
+                'total': len(results['signaling_markers']['markers']),
+                'items': []
+            },
+            'metaphor_structures': {
+                'total': results['metaphor_structures']['potential_metaphors_count'],
+                'items': []
+            }
+        }
+        
+        # Format cultural keywords
+        for kw in results['cultural_keywords']['keywords']:
+            formatted_results['cultural_keywords']['items'].append({
+                'keyword': kw['keyword'],
+                'frequency': kw['occurrence_count'],
+                'g2_score': round(kw['g2_score'], 2),
+                'occurrences': [
+                    {
+                        'sentence': occ['sentence'],
+                        'sentence_id': occ['sentence_id']
+                    }
+                    for occ in kw['occurrences'][:10]  # Limit to 10 occurrences per keyword
+                ]
+            })
+        
+        # Format signaling markers
+        for marker in results['signaling_markers']['markers']:
+            formatted_results['signaling_markers']['items'].append({
+                'marker': marker['marker'],
+                'frequency': marker['occurrence_count'],
+                'occurrences': [
+                    {
+                        'sentence': occ['sentence'],
+                        'sentence_id': occ.get('sentence_id', 0)
+                    }
+                    for occ in marker['occurrences'][:10]  # Limit to 10 occurrences per marker
+                ]
+            })
+        
+        # Format metaphor structures (all potential metaphors)
+        sentence_to_id = {}
+        for kw in results['cultural_keywords']['keywords']:
+            for occ in kw['occurrences']:
+                sentence_to_id[occ['sentence']] = occ['sentence_id']
+        
+        for marker in results['signaling_markers']['markers']:
+            for occ in marker['occurrences']:
+                if 'sentence_id' in occ:
+                    sentence_to_id[occ['sentence']] = occ['sentence_id']
+        
+        for metaphor in results['metaphor_structures']['potential_metaphors']:
+            sentence_id = sentence_to_id.get(metaphor['sentence'], 0)
+            
+            formatted_results['metaphor_structures']['items'].append({
+                'subject': metaphor['subject'],
+                'be_verb': metaphor['be_verb'],
+                'predicate': metaphor['predicate'],
+                'sentence': metaphor['sentence'],
+                'semantic_distance': round(metaphor['semantic_distance'], 3),
+                'sentence_id': sentence_id
+            })
+            
+        analysis_tasks[task_id]["results"] = formatted_results
+        analysis_tasks[task_id]["status"] = "completed"
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        analysis_tasks[task_id]["status"] = "failed"
+        analysis_tasks[task_id]["error"] = str(e)
+        
+    finally:
+        # Restore original settings
+        ckl.USE_ENTITY_LINKER = original_use_entity_linker
+        ckl.RUN_COREF = original_run_coref
+        ckl.USE_REAL_SPACY = original_use_real_spacy
+        
+        # Restore original SQLite connect function
+        sqlite3.connect = original_sqlite_connect
+        
+        # Clean up temporary files
+        try:
+            if tmp_corpus_path:
+                os.unlink(tmp_corpus_path)
+        except:
+            pass
+        
+        try:
+            if tmp_ref_path:
+                os.unlink(tmp_ref_path)
+        except:
+            pass
+
 @app.route('/api/metaphor_analysis', methods=['POST'])
 def run_metaphor_analysis():
-    """Run comprehensive metaphor analysis on uploaded corpus"""
+    """Start background metaphor analysis on uploaded corpus"""
     try:
         data = request.json
         corpus_id = data.get('corpus_id', 'custom')
@@ -928,203 +1101,47 @@ def run_metaphor_analysis():
                 
         if not text or not text.strip():
             return jsonify({'error': 'No text provided'}), 400
-        
-        # IMPORTANT: Patch SQLite FIRST to allow cross-thread usage
-        # The entity linker's knowledge base uses SQLite, which by default doesn't allow
-        # connections to be used across threads. We patch it to enable this.
-        import sqlite3
-        
-        # Store original connect function
-        original_sqlite_connect = sqlite3.connect
-        
-        # Patch sqlite3.connect to add check_same_thread=False
-        def patched_connect(database, timeout=5.0, detect_types=0, isolation_level='DEFERRED', 
-                          check_same_thread=True, factory=sqlite3.Connection, cached_statements=128, uri=False):
-            # Force check_same_thread=False for thread safety in Flask
-            return original_sqlite_connect(database, timeout=timeout, detect_types=detect_types,
-                                         isolation_level=isolation_level, check_same_thread=False,
-                                         factory=factory, cached_statements=cached_statements, uri=uri)
-        
-        sqlite3.connect = patched_connect
-        
-        # Now configure the analysis settings
-        import culturalKeywordsListIdentification_1 as ckl
-        
-        # Store original values
-        original_use_entity_linker = ckl.USE_ENTITY_LINKER
-        original_run_coref = ckl.RUN_COREF
-        original_use_real_spacy = ckl.USE_REAL_SPACY
-        
-        # Enable entity linker with cross-thread SQLite support
-        ckl.USE_ENTITY_LINKER = True
-        ckl.RUN_COREF = False  # Disable coref to speed up analysis
-        ckl.USE_REAL_SPACY = True
-        
-        # Now import the comprehensive metaphor analyzer
-        # The analyzer module now references ckl module directly, so our changes above will apply
-        try:
-            from comprehensive_metaphor_analysis import ComprehensiveMetaphorAnalyzer
-        except ImportError as e:
-            # Restore settings before returning
-            ckl.USE_ENTITY_LINKER = original_use_entity_linker
-            ckl.RUN_COREF = original_run_coref
-            ckl.USE_REAL_SPACY = original_use_real_spacy
-            sqlite3.connect = original_sqlite_connect
-            return jsonify({'error': f'Failed to import metaphor analyzer: {str(e)}'}), 500
-        
-        # Create temporary files for the corpus text
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as tmp_file:
-            tmp_file.write(text)
-            tmp_corpus_path = tmp_file.name
-        
-        # Create temporary file for reference corpus if provided
-        tmp_ref_path = None
-        if ref_text and ref_text.strip():
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as tmp_ref_file:
-                tmp_ref_file.write(ref_text)
-                tmp_ref_path = tmp_ref_file.name
-        
-        try:
-            # Use custom reference corpus if provided, otherwise use default
-            if tmp_ref_path:
-                reference_corpus = tmp_ref_path
-            else:
-                reference_corpus = os.path.join(os.path.dirname(__file__), 'Enigma of China Reference Corpus.txt')
-                
-                if not os.path.exists(reference_corpus):
-                    return jsonify({'error': 'Default reference corpus not found'}), 500
             
-            try:
-                # Initialize analyzer (flags already set at the beginning of function)
-                # NOTE: The entity linker (with SQLite) will be created inside analyze_cultural_keywords(),
-                # which runs in THIS request thread. This avoids threading issues because the SQLite
-                # connection is created and used in the same thread.
-                analyzer = ComprehensiveMetaphorAnalyzer(
-                    corpus_file=tmp_corpus_path,
-                    reference_corpus_files=[reference_corpus]
-                )
-                
-                # Run complete analysis
-                # First request will be slow (~10-15 seconds) due to entity linker initialization
-                results = analyzer.run_complete_analysis(similarity_threshold=0.5)
-                
-            finally:
-                # Restore original settings
-                ckl.USE_ENTITY_LINKER = original_use_entity_linker
-                ckl.RUN_COREF = original_run_coref
-                ckl.USE_REAL_SPACY = original_use_real_spacy
-                
-                # Restore original SQLite connect function
-                sqlite3.connect = original_sqlite_connect
-            
-            # Clean up the results to make them JSON serializable
-            # Format the results to be more frontend-friendly
-            formatted_results = {
-                'cultural_keywords': {
-                    'total': results['cultural_keywords']['total_keywords'],
-                    'items': []
-                },
-                'signaling_markers': {
-                    'total': len(results['signaling_markers']['markers']),
-                    'items': []
-                },
-                'metaphor_structures': {
-                    'total': results['metaphor_structures']['potential_metaphors_count'],
-                    'items': []
-                }
-            }
-            
-            # Format cultural keywords (all)
-            for kw in results['cultural_keywords']['keywords']:
-                formatted_results['cultural_keywords']['items'].append({
-                    'keyword': kw['keyword'],
-                    'frequency': kw['occurrence_count'],
-                    'g2_score': round(kw['g2_score'], 2),
-                    'occurrences': [
-                        {
-                            'sentence': occ['sentence'],
-                            'sentence_id': occ['sentence_id']
-                        }
-                        for occ in kw['occurrences'][:10]  # Limit to 10 occurrences per keyword
-                    ]
-                })
-            
-            # Format signaling markers (all)
-            for marker in results['signaling_markers']['markers']:
-                formatted_results['signaling_markers']['items'].append({
-                    'marker': marker['marker'],
-                    'frequency': marker['occurrence_count'],
-                    'occurrences': [
-                        {
-                            'sentence': occ['sentence'],
-                            'sentence_id': occ.get('sentence_id', 0)
-                        }
-                        for occ in marker['occurrences'][:10]  # Limit to 10 occurrences per marker
-                    ]
-                })
-            
-            # Format metaphor structures (all potential metaphors)
-            # Create a mapping of sentences to IDs from cultural keywords and signaling markers
-            sentence_to_id = {}
-            for kw in results['cultural_keywords']['keywords']:
-                for occ in kw['occurrences']:
-                    sentence_to_id[occ['sentence']] = occ['sentence_id']
-            
-            for marker in results['signaling_markers']['markers']:
-                for occ in marker['occurrences']:
-                    if 'sentence_id' in occ:
-                        sentence_to_id[occ['sentence']] = occ['sentence_id']
-            
-            for metaphor in results['metaphor_structures']['potential_metaphors']:
-                # Try to find sentence_id by matching the sentence
-                sentence_id = sentence_to_id.get(metaphor['sentence'], 0)
-                
-                formatted_results['metaphor_structures']['items'].append({
-                    'subject': metaphor['subject'],
-                    'be_verb': metaphor['be_verb'],
-                    'predicate': metaphor['predicate'],
-                    'sentence': metaphor['sentence'],
-                    'semantic_distance': round(metaphor['semantic_distance'], 3),
-                    'sentence_id': sentence_id
-                })
-            
-            return jsonify({
-                'success': True,
-                'results': formatted_results
-            })
-            
-        finally:
-            # Clean up temporary files
-            try:
-                os.unlink(tmp_corpus_path)
-            except:
-                pass
-            
-            if tmp_ref_path:
-                try:
-                    os.unlink(tmp_ref_path)
-                except:
-                    pass
-                
+        # Create a unique task ID
+        task_id = str(uuid.uuid4())
+        analysis_tasks[task_id] = {
+            "status": "pending",
+            "results": None,
+            "error": None
+        }
+        
+        # Spawn background thread to run analysis
+        thread = threading.Thread(
+            target=background_analysis_worker,
+            args=(task_id, text, ref_text, corpus_id)
+        )
+        thread.daemon = True
+        thread.start()
+        
+        return jsonify({
+            'success': True,
+            'task_id': task_id,
+            'status': 'pending'
+        })
+        
     except Exception as e:
         import traceback
         traceback.print_exc()
+        return jsonify({'error': f'Failed to start analysis: {str(e)}'}), 500
+
+@app.route('/api/metaphor_analysis/status/<task_id>', methods=['GET'])
+def get_metaphor_analysis_status(task_id):
+    """Check the status of a background metaphor analysis task"""
+    task = analysis_tasks.get(task_id)
+    if not task:
+        return jsonify({'success': False, 'error': 'Task not found'}), 404
         
-        # Make sure to restore settings even on error
-        try:
-            if 'original_use_entity_linker' in locals():
-                import culturalKeywordsListIdentification_1 as ckl
-                ckl.USE_ENTITY_LINKER = original_use_entity_linker
-                ckl.RUN_COREF = original_run_coref
-                ckl.USE_REAL_SPACY = original_use_real_spacy
-            
-            if 'original_sqlite_connect' in locals():
-                import sqlite3
-                sqlite3.connect = original_sqlite_connect
-        except:
-            pass
-            
-        return jsonify({'error': f'Analysis failed: {str(e)}'}), 500
+    return jsonify({
+        'success': True,
+        'status': task['status'],
+        'results': task['results'],
+        'error': task['error']
+    })
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

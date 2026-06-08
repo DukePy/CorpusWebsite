@@ -296,9 +296,9 @@ class EntityLinkerFilter:
             
             # Load Spacy with Entity Linker
             print("Loading spaCy + Entity Linker...")
-            #self.nlp = spacy.load("en_core_web_sm")
+            self.nlp = spacy.load("en_core_web_sm")
             #self.nlp = spacy.load("en_core_web_md")  # Using medium model to avoid transformer compatibility issues
-            self.nlp = spacy.load("en_core_web_lg")  # Using large model to avoid transformer compatibility issues
+            #self.nlp = spacy.load("en_core_web_lg")  # Using large model to avoid transformer compatibility issues
             #self.nlp = spacy.load("en_core_web_trf")
             
             # Increase max length for processing large texts
@@ -829,9 +829,9 @@ class SpacyNLPProcessor:
         try:
             import spacy
             # Load the small English model
-            #self.nlp = spacy.load("en_core_web_sm")
+            self.nlp = spacy.load("en_core_web_sm")
             #self.nlp = spacy.load("en_core_web_md")
-            self.nlp = spacy.load("en_core_web_lg")  # Using large model to avoid transformer compatibility issues
+            #self.nlp = spacy.load("en_core_web_lg")  # Using large model to avoid transformer compatibility issues
             #self.nlp = spacy.load("en_core_web_trf")
             
             # Increase max length for tokenization (reference corpus may be large)

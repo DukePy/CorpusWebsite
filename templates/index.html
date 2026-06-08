@@ -2321,21 +2321,17 @@
         }
         
         // --- Metaphor Analysis Functions ---
+        // --- Metaphor Analysis Functions ---
         async function runMetaphorAnalysis(corpusId, text, refText) {
             const contentDiv = document.getElementById('cultural-insights-content');
             contentDiv.innerHTML = `
                 <div class="space-y-2">
-                    <p class="text-gray-600">🔍 Extracting potential metaphorical patterns from the text...</p>
-                    <p class="text-xs text-gray-500">This may take 2-3 minutes for large texts.</p>
-                    <div class="mt-4 space-y-1 text-xs text-gray-500">
-                        <p>⏳ Phase 1: Identifying culturally-relevant keywords...</p>
-                        <p>⏳ Phase 2: Detecting potential signaling markers...</p>
-                        <p>⏳ Phase 3: Analyzing metaphorical structures...</p>
-                    </div>
+                    <p class="text-gray-600">🔍 Submitting analysis task to server...</p>
                 </div>
             `;
             
             try {
+                // 1. Submit the task
                 const response = await fetch('/api/metaphor_analysis', {
                     method: 'POST',
                     headers: {
@@ -2350,47 +2346,112 @@
                 
                 const data = await response.json();
                 
-                if (window.analysisTimerInterval) {
-                    clearInterval(window.analysisTimerInterval);
-                    window.analysisTimerInterval = null;
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to start analysis');
                 }
                 
-                if (data.success) {
-                    displayMetaphorResults(data.results);
-                    const alertDiv = document.getElementById('analysis-alert');
-                    if (alertDiv) {
-                        alertDiv.innerHTML = `
-                            <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded-lg shadow-sm flex items-start justify-between">
-                                <div class="flex">
-                                    <div class="flex-shrink-0">
-                                        <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <h3 class="text-sm font-bold text-green-800">Analysis Done</h3>
-                                        <div class="mt-2 text-sm text-green-700 leading-relaxed">
-                                            <p>The corpus analysis is complete! The <strong>Potential Metaphorical Patterns Extraction</strong> results are ready at the <a href="#cultural-insights-content" class="underline font-bold text-green-800 hover:text-green-900" onclick="document.getElementById('cultural-insights-content').scrollIntoView({behavior: 'smooth'})">bottom of this page</a>.</p>
-                                        </div>
+                const taskId = data.task_id;
+                contentDiv.innerHTML = `
+                    <div class="space-y-2">
+                        <p class="text-gray-600">🔍 Analysis task started successfully (ID: ${taskId.substring(0, 8)})...</p>
+                        <p class="text-xs text-gray-500">Processing in background. Institutional firewalls will not interrupt this request.</p>
+                        <div class="mt-4 space-y-1 text-xs text-gray-500">
+                            <p>⏳ Phase 1: Identifying culturally-relevant keywords...</p>
+                            <p>⏳ Phase 2: Detecting potential signaling markers...</p>
+                            <p>⏳ Phase 3: Analyzing metaphorical structures...</p>
+                        </div>
+                    </div>
+                `;
+                
+                // 2. Start polling status
+                let consecutiveErrors = 0;
+                const pollInterval = setInterval(async () => {
+                    try {
+                        const statusResponse = await fetch(`/api/metaphor_analysis/status/${taskId}`);
+                        const statusData = await statusResponse.json();
+                        
+                        if (!statusData.success) {
+                            throw new Error(statusData.error || 'Failed to retrieve task status');
+                        }
+                        
+                        consecutiveErrors = 0; // Reset error counter
+                        
+                        if (statusData.status === 'running') {
+                            contentDiv.innerHTML = `
+                                <div class="space-y-2">
+                                    <p class="text-gray-600">⚡ Server is actively processing your text...</p>
+                                    <p class="text-xs text-gray-500">Please wait. Large files may take up to 2-3 minutes.</p>
+                                    <div class="mt-4 space-y-1 text-xs text-gray-500">
+                                        <p>⚙️ Executing statistical keyness sieve & named entity linking...</p>
+                                        <p>⚙️ Querying Sentence-Transformer model (all-MiniLM-L6-v2) for embeddings...</p>
                                     </div>
                                 </div>
-                                <button onclick="this.parentElement.parentElement.style.display='none'" class="ml-auto bg-transparent border-0 text-green-500 hover:text-green-700 focus:outline-none">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        `;
-                        alertDiv.style.display = 'block';
+                            `;
+                        } else if (statusData.status === 'completed') {
+                            clearInterval(pollInterval);
+                            
+                            if (window.analysisTimerInterval) {
+                                clearInterval(window.analysisTimerInterval);
+                                window.analysisTimerInterval = null;
+                            }
+                            
+                            displayMetaphorResults(statusData.results);
+                            const alertDiv = document.getElementById('analysis-alert');
+                            if (alertDiv) {
+                                alertDiv.innerHTML = `
+                                    <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded-lg shadow-sm flex items-start justify-between">
+                                        <div class="flex">
+                                            <div class="flex-shrink-0">
+                                                <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <h3 class="text-sm font-bold text-green-800">Analysis Done</h3>
+                                                <div class="mt-2 text-sm text-green-700 leading-relaxed">
+                                                    <p>The corpus analysis is complete! The <strong>Potential Metaphorical Patterns Extraction</strong> results are ready at the <a href="#cultural-insights-content" class="underline font-bold text-green-800 hover:text-green-900" onclick="document.getElementById('cultural-insights-content').scrollIntoView({behavior: 'smooth'})">bottom of this page</a>.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button onclick="this.parentElement.parentElement.style.display='none'" class="ml-auto bg-transparent border-0 text-green-500 hover:text-green-700 focus:outline-none">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                `;
+                                alertDiv.style.display = 'block';
+                            }
+                        } else if (statusData.status === 'failed') {
+                            clearInterval(pollInterval);
+                            
+                            if (window.analysisTimerInterval) {
+                                clearInterval(window.analysisTimerInterval);
+                                window.analysisTimerInterval = null;
+                            }
+                            
+                            contentDiv.innerHTML = `<p class="text-red-600">❌ Metaphorical pattern extraction failed: ${statusData.error || 'Internal Server Error'}</p>`;
+                            const alertDiv = document.getElementById('analysis-alert');
+                            if (alertDiv) alertDiv.style.display = 'none';
+                        }
+                    } catch (pollErr) {
+                        console.error('Polling status error:', pollErr);
+                        consecutiveErrors++;
+                        // Only fail after 5 consecutive failed network requests (e.g. temporary server restart or brief connection hiccup)
+                        if (consecutiveErrors >= 5) {
+                            clearInterval(pollInterval);
+                            if (window.analysisTimerInterval) {
+                                clearInterval(window.analysisTimerInterval);
+                                window.analysisTimerInterval = null;
+                            }
+                            contentDiv.innerHTML = `<p class="text-red-600">❌ Lost connection to server during status checks.</p>`;
+                        }
                     }
-                } else {
-                    contentDiv.innerHTML = `<p class="text-red-600">❌ Metaphorical pattern extraction failed: ${data.error}</p>`;
-                    const alertDiv = document.getElementById('analysis-alert');
-                    if (alertDiv) alertDiv.style.display = 'none';
-                }
+                }, 3000); // Poll every 3 seconds
+                
             } catch (error) {
                 if (window.analysisTimerInterval) {
                     clearInterval(window.analysisTimerInterval);
                     window.analysisTimerInterval = null;
                 }
                 console.error('Metaphor analysis error:', error);
-                contentDiv.innerHTML = '<p class="text-red-600">❌ An error occurred during metaphorical pattern extraction.</p>';
+                contentDiv.innerHTML = `<p class="text-red-600">❌ An error occurred during metaphorical pattern extraction: ${error.message}</p>`;
                 const alertDiv = document.getElementById('analysis-alert');
                 if (alertDiv) alertDiv.style.display = 'none';
             }
