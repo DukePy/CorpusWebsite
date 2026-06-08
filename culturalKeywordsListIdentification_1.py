@@ -928,7 +928,7 @@ class SpacyNLPProcessor:
         Wraps spaCy's processing to return a list of strings, 
         matching the expected input of the statistical engine.
         """
-        doc = self.nlp(text)
+        doc = self.nlp.make_doc(text)
         # Return text of tokens if they are alphabetic (removes punctuation)
         return [token.text for token in doc if token.is_alpha]
 
