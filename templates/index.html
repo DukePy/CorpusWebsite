@@ -1471,10 +1471,10 @@
                 return;
             }
             
-            // If the selected corpus isn't analyzed yet, run full analysis first
+            // If the selected corpus isn't analyzed yet, run full analysis first (basic only)
             const selectedCorpus = document.getElementById('corpus-select').value;
             if (currentCorpusData.corpus_id !== selectedCorpus) {
-                await runFullAnalysis();
+                await runFullAnalysis(false);
             }
             
             // Show reset/overview button
@@ -1712,8 +1712,8 @@
                 // Reset content
                 document.getElementById('cultural-insights-content').innerHTML = '<div class="text-center py-12 text-gray-400"><i class="fas fa-spinner fa-spin text-2xl text-blue-300 mb-2 block"></i><p>Analyzing pre-loaded corpus...</p></div>';
                 
-                // Automatically run analysis on selection
-                runFullAnalysis();
+                // Automatically run analysis on selection (basic only)
+                runFullAnalysis(false);
             }
         });
         
@@ -1840,7 +1840,7 @@
             }
         }
 
-        async function runFullAnalysis() {
+        async function runFullAnalysis(includeMetaphors = true) {
             const selectedCorpus = document.getElementById('corpus-select').value;
             
             // Get text based on corpus type
@@ -1958,29 +1958,42 @@
                         alertDiv.style.display = 'block';
                     }
                     
-                    if (window.analysisTimerInterval) {
-                        clearInterval(window.analysisTimerInterval);
-                    }
-                    let timeLeft = 150; // 2 minutes 30 seconds
-                    window.analysisTimerInterval = setInterval(() => {
-                        timeLeft--;
-                        const min = Math.floor(timeLeft / 60);
-                        const sec = timeLeft % 60;
-                        const formattedSec = sec < 10 ? '0' + sec : sec;
-                        const timerSpan = document.getElementById('analysis-countdown');
-                        if (timerSpan) {
-                            if (timeLeft > 0) {
-                                timerSpan.textContent = `${min}:${formattedSec}`;
-                            } else {
-                                timerSpan.textContent = "Wrapping up analysis...";
-                                clearInterval(window.analysisTimerInterval);
-                            }
-                        } else {
+                    if (includeMetaphors) {
+                        if (window.analysisTimerInterval) {
                             clearInterval(window.analysisTimerInterval);
                         }
-                    }, 1000);
+                        let timeLeft = 150; // 2 minutes 30 seconds
+                        window.analysisTimerInterval = setInterval(() => {
+                            timeLeft--;
+                            const min = Math.floor(timeLeft / 60);
+                            const sec = timeLeft % 60;
+                            const formattedSec = sec < 10 ? '0' + sec : sec;
+                            const timerSpan = document.getElementById('analysis-countdown');
+                            if (timerSpan) {
+                                if (timeLeft > 0) {
+                                    timerSpan.textContent = `${min}:${formattedSec}`;
+                                } else {
+                                    timerSpan.textContent = "Wrapping up analysis...";
+                                    clearInterval(window.analysisTimerInterval);
+                                }
+                            } else {
+                                clearInterval(window.analysisTimerInterval);
+                            }
+                        }, 1000);
 
-                    runMetaphorAnalysis(selectedCorpus, text, currentCorpusData.refText);
+                        runMetaphorAnalysis(selectedCorpus, text, currentCorpusData.refText);
+                    } else {
+                        // Display a placeholder explaining that metaphor analysis can be run manually
+                        document.getElementById('cultural-insights-content').innerHTML = `
+                            <div class="text-center py-12 text-gray-500">
+                                <i class="fas fa-info-circle text-2xl text-blue-300 mb-2 block"></i>
+                                <p class="mb-4">Corpus text has been loaded. Click the <strong>"Analyze Text"</strong> button in the left sidebar to run the metaphor extraction analysis.</p>
+                                <button onclick="runFullAnalysis(true)" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-2.5 rounded-lg text-sm hover:from-blue-700 hover:to-blue-800 transition shadow flex items-center justify-center mx-auto font-semibold">
+                                    <i class="fas fa-magic mr-2"></i> Run Metaphor Extraction
+                                </button>
+                            </div>
+                        `;
+                    }
                 } else {
                     alert('Analysis failed: ' + (data.error || 'Unknown error'));
                 }
