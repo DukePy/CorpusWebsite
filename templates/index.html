@@ -1372,6 +1372,12 @@
                 }
             });
         }
+        function updateCulturalInsightsTitle(isCustomOrUploaded) {
+            const titleEl = document.getElementById('cultural-insights-title');
+            if (titleEl) {
+                titleEl.textContent = isCustomOrUploaded ? 'Cultural Insights & Metaphors' : 'Cultural Insights';
+            }
+        }
         
         // Load corpora when page loads
         window.addEventListener('DOMContentLoaded', () => {
